@@ -1,12 +1,35 @@
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-black: #0a0a0a;
+  --color-white: #ffffff;
+  --color-red: #e10600;
+  --background: var(--color-white);
+  --foreground: var(--color-black);
+  --accent: var(--color-red);
+  transition: background 0.2s, color 0.2s;
+}
+
+.theme-dark {
+  --background: var(--color-black);
+  --foreground: var(--color-white);
+  --accent: var(--color-red);
+}
+
+.theme-light {
+  --background: var(--color-white);
+  --foreground: var(--color-black);
+  --accent: var(--color-red);
+}
+
+.theme-red {
+  --background: var(--color-red);
+  --foreground: var(--color-white);
+  --accent: var(--color-black);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: var(--color-black);
+    --foreground: var(--color-white);
   }
 }
 

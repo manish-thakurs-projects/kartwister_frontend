@@ -1,0 +1,291 @@
+.page {
+  --accent: #ff3e00;
+  --accent-light: #ff5c29;
+  --accent-dark: #cc3300;
+  --background: #ffffff;
+  --foreground: #1a1a1a;
+  --card-bg: #ffffff;
+  --card-shadow: rgba(0, 0, 0, 0.08);
+  --text-light: #666666;
+  --border: #e5e5e5;
+  --success: #10b981;
+  --error: #ef4444;
+  --gray-rgb: 0, 0, 0;
+  --gray-alpha-200: rgba(var(--gray-rgb), 0.08);
+  --gray-alpha-100: rgba(var(--gray-rgb), 0.05);
+  
+  min-height: 100vh;
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  transition: all 0.3s ease;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.main {
+  width: 100%;
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.heading {
+  color: var(--accent);
+  font-size: 2.25rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  text-align: center;
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+.card {
+  background: var(--card-bg);
+  border-radius: 16px;
+  box-shadow: 0 8px 30px var(--card-shadow);
+  padding: 2rem;
+  width: 100%;
+  animation: fadeIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid var(--border);
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.orderId {
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--accent);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.orderId::before {
+  content: '📦';
+  font-size: 1.1em;
+}
+
+.productsContainer {
+  display: grid;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.productCard {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 12px;
+  background: var(--gray-alpha-100);
+  transition: all 0.3s ease;
+  border: 1px solid var(--border);
+  animation: slideIn 0.4s ease-out;
+  animation-fill-mode: backwards;
+}
+
+.productCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.productImage {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: white;
+  padding: 4px;
+  border: 1px solid var(--border);
+}
+
+.productInfo {
+  flex: 1;
+}
+
+.productName {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.productMeta {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-light);
+  font-size: 0.85rem;
+}
+
+.trackingTitle {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 1.25rem;
+  position: relative;
+  padding-left: 1.75rem;
+}
+
+.trackingTitle::before {
+  content: '🚚';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2em;
+}
+
+.timeline {
+  position: relative;
+  padding-left: 1.5rem;
+  border-left: 2px solid var(--accent-light);
+  margin-left: 0.75rem;
+}
+
+.timelineStep {
+  position: relative;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px dashed var(--border);
+  animation: popIn 0.5s ease-out;
+  animation-fill-mode: backwards;
+}
+
+.timelineStep:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.timelineStep::before {
+  content: '';
+  position: absolute;
+  left: -1.69rem;
+  top: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 3px solid var(--card-bg);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.status {
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.note {
+  color: var(--text-light);
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+  line-height: 1.4;
+}
+
+.date {
+  font-size: 0.8rem;
+  background: var(--gray-alpha-100);
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 20px;
+  margin-top: 0.5rem;
+  color: var(--text-light);
+}
+
+.error {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--error);
+  padding: 1.25rem;
+  border-radius: 12px;
+  border: 1px solid var(--error);
+  text-align: center;
+  margin: 1rem 0;
+  animation: shake 0.5s ease;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 3rem 0;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 62, 0, 0.2);
+  border-top-color: var(--accent);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes popIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  70% {
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-5px); }
+  40%, 80% { transform: translateX(5px); }
+}
+
+.dark .timelineStep::before {
+  border-color: var(--card-bg);
+}
+
+/* Delays for staggered animations */
+.productCard:nth-child(1) { animation-delay: 0.1s; }
+.productCard:nth-child(2) { animation-delay: 0.2s; }
+.productCard:nth-child(3) { animation-delay: 0.3s; }
+
+.timelineStep:nth-child(1) { animation-delay: 0.15s; }
+.timelineStep:nth-child(2) { animation-delay: 0.3s; }
+.timelineStep:nth-child(3) { animation-delay: 0.45s; }
+.timelineStep:nth-child(4) { animation-delay: 0.6s; }
