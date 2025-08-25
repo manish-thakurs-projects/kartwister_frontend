@@ -91,7 +91,7 @@ const ResetPasswordPage = () => {
             {step === 3 && "Password Reset Complete"}
           </h1>
           <p className={styles.subtitle}>
-            {step === 1 && "Enter your email address and we'll send you a secure OTP to reset your password"}
+            {step === 1 && "Enter your email address and we&apos;ll send you a secure OTP to reset your password"}
             {step === 2 && "Enter the 6-digit OTP sent to your email and create a new password"}
             {step === 3 && "Your password has been successfully updated"}
           </p>
@@ -102,7 +102,7 @@ const ResetPasswordPage = () => {
           <>
             <div className={styles.infoBox}>
               <h3><FiShield size={16} /> Secure Password Reset</h3>
-              <p>We'll send a one-time password (OTP) to your registered email address. This ensures only you can reset your password.</p>
+              <p>We&apos;ll send a one-time password (OTP) to your registered email address. This ensures only you can reset your password.</p>
             </div>
             
             <form onSubmit={handleRequestOtp} className={styles.form}>
