@@ -187,6 +187,24 @@
   color: var(--error);
 }
 
+.loginPrompt {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.loginLink {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.loginLink:hover {
+  color: var(--accent-dark);
+  text-decoration: underline;
+}
+
 .success {
   background: rgba(16, 185, 129, 0.1);
   border: 1px solid var(--success);

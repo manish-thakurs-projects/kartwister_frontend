@@ -59,7 +59,7 @@ export default function CompletedOrdersPage() {
       setLoading(true);
       setError("");
       try {
-        const res = await fetch("/api/admin/completed-orders", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/admin/completed-orders`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();

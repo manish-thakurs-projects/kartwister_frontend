@@ -4,6 +4,27 @@ import React, { useEffect, useState } from "react";
 import styles from "./page.module.css";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { 
+  FiUser, 
+  FiMapPin, 
+  FiSearch, 
+  FiPackage, 
+  FiCheckCircle, 
+  FiXCircle,
+  FiCalendar,
+  FiDollarSign,
+  FiHome,
+  FiEdit,
+  FiTrash2,
+  FiEye,
+  FiRefreshCw,
+  FiShoppingCart,
+  FiArrowRight,
+  FiChevronDown,
+  FiChevronUp,
+  FiPlus,
+  FiPhone
+} from "react-icons/fi";
 
 interface Address {
   _id: string;
@@ -92,7 +113,7 @@ const DashboardPage = () => {
       setError(null);
       try {
         const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-        const res = await fetch("/api/user/dashboard", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/user/dashboard`, {
           headers: {
             "Authorization": token ? `Bearer ${token}` : "",
           },
@@ -146,7 +167,9 @@ const DashboardPage = () => {
   if (error) {
     return (
       <div className={styles.errorContainer}>
-        <div className={styles.errorIcon}>⚠️</div>
+        <div className={styles.errorIcon}>
+          <FiXCircle size={48} />
+        </div>
         <h2>Error Loading Dashboard</h2>
         <p>{error}</p>
         <button 
@@ -162,28 +185,35 @@ const DashboardPage = () => {
   if (!data) return null;
 
   return (
-    <main className={styles.container}>
+    <div className={styles.page}>
       <div className={styles.header}>
         <div className={styles.headerContent}>
           <h1 className={styles.title}>Dashboard</h1>
           <p className={styles.subtitle}>Welcome back, {data.profile.name}</p>
         </div>
-        <div className={styles.stats}>
-          <div className={styles.statCard}>
-            <div className={styles.statIcon}>📦</div>
-            <div className={styles.statValue}>{data.orders.length}</div>
-            <div className={styles.statLabel}>Total Orders</div>
+      </div>
+
+      <div className={styles.stats}>
+        <div className={styles.statCard}>
+          <div className={styles.statIcon}>
+            <FiPackage size={24} />
           </div>
-          <div className={styles.statCard}>
-            <div className={styles.statIcon}>📋</div>
-            <div className={styles.statValue}>{data.scrapeHistory.length}</div>
-            <div className={styles.statLabel}>Scrape Requests</div>
+          <div className={styles.statValue}>{data.orders.length}</div>
+          <div className={styles.statLabel}>Total Orders</div>
+        </div>
+        <div className={styles.statCard}>
+          <div className={styles.statIcon}>
+            <FiSearch size={24} />
           </div>
-          <div className={styles.statCard}>
-            <div className={styles.statIcon}>🏠</div>
-            <div className={styles.statValue}>{data.addresses.length}</div>
-            <div className={styles.statLabel}>Saved Addresses</div>
+          <div className={styles.statValue}>{data.scrapeHistory.length}</div>
+          <div className={styles.statLabel}>Scrape Requests</div>
+        </div>
+        <div className={styles.statCard}>
+          <div className={styles.statIcon}>
+            <FiHome size={24} />
           </div>
+          <div className={styles.statValue}>{data.addresses.length}</div>
+          <div className={styles.statLabel}>Saved Addresses</div>
         </div>
       </div>
 
@@ -194,29 +224,37 @@ const DashboardPage = () => {
             className={`${styles.navItem} ${activeSection === 'profile' ? styles.active : ''}`}
             onClick={() => setActiveSection('profile')}
           >
-            <div className={styles.navIcon}>👤</div>
-            Profile
+            <div className={styles.navIcon}>
+              <FiUser size={20} />
+            </div>
+            <span className={styles.navText}>Profile</span>
           </div>
           <div 
             className={`${styles.navItem} ${activeSection === 'addresses' ? styles.active : ''}`}
             onClick={() => setActiveSection('addresses')}
           >
-            <div className={styles.navIcon}>📍</div>
-            Addresses
+            <div className={styles.navIcon}>
+              <FiMapPin size={20} />
+            </div>
+            <span className={styles.navText}>Addresses</span>
           </div>
           <div 
             className={`${styles.navItem} ${activeSection === 'scrape' ? styles.active : ''}`}
             onClick={() => setActiveSection('scrape')}
           >
-            <div className={styles.navIcon}>🔍</div>
-            Scrape History
+            <div className={styles.navIcon}>
+              <FiSearch size={20} />
+            </div>
+            <span className={styles.navText}>Scrape History</span>
           </div>
           <div 
             className={`${styles.navItem} ${activeSection === 'orders' ? styles.active : ''}`}
             onClick={() => setActiveSection('orders')}
           >
-            <div className={styles.navIcon}>📦</div>
-            Order History
+            <div className={styles.navIcon}>
+              <FiPackage size={20} />
+            </div>
+            <span className={styles.navText}>Order History</span>
           </div>
         </div>
 
@@ -243,16 +281,32 @@ const DashboardPage = () => {
                   <div className={styles.infoItem}>
                     <span className={styles.infoLabel}>Verified:</span>
                     <span className={`${styles.infoValue} ${data.profile.isVerified ? styles.verified : styles.notVerified}`}>
-                      {data.profile.isVerified ? "Verified" : "Not Verified"}
+                      {data.profile.isVerified ? (
+                        <>
+                          <FiCheckCircle size={16} />
+                          Verified
+                        </>
+                      ) : (
+                        <>
+                          <FiXCircle size={16} />
+                          Not Verified
+                        </>
+                      )}
                     </span>
                   </div>
                   <div className={styles.infoItem}>
                     <span className={styles.infoLabel}>Member Since:</span>
-                    <span className={styles.infoValue}>{formatDate(data.profile.createdAt)}</span>
+                    <span className={styles.infoValue}>
+                      <FiCalendar size={16} />
+                      {formatDate(data.profile.createdAt)}
+                    </span>
                   </div>
                 </div>
                 <div className={styles.profileActions}>
-                  <button className={styles.actionButton} onClick={() => router.push('/reset-password')}>Change Password</button>
+                  <button className={styles.actionButton} onClick={() => router.push('/reset-password')}>
+                    <FiEdit size={16} />
+                    Change Password
+                  </button>
                 </div>
               </div>
             </div>
@@ -264,10 +318,15 @@ const DashboardPage = () => {
               <h2 className={styles.sectionTitle}>Saved Addresses</h2>
               {data.addresses.length === 0 ? (
                 <div className={styles.emptyState}>
-                  <div className={styles.emptyIcon}>📍</div>
+                  <div className={styles.emptyIcon}>
+                    <FiMapPin size={48} />
+                  </div>
                   <h3>No saved addresses</h3>
                   <p>Add an address to make checkout faster</p>
-                  <button className={styles.addButton}>Add New Address</button>
+                  <button className={styles.addButton}>
+                    <FiPlus size={16} />
+                    Add New Address
+                  </button>
                 </div>
               ) : (
                 <div className={styles.addressesGrid}>
@@ -280,8 +339,12 @@ const DashboardPage = () => {
                       <div className={styles.addressHeader}>
                         <h3>{addr.label}</h3>
                         <div className={styles.addressActions}>
-                          <button className={styles.editButton}>Edit</button>
-                          <button className={styles.deleteButton}>Delete</button>
+                          <button className={styles.editButton}>
+                            <FiEdit size={14} />
+                          </button>
+                          <button className={styles.deleteButton}>
+                            <FiTrash2 size={14} />
+                          </button>
                         </div>
                       </div>
                       <div className={styles.addressContent}>
@@ -323,10 +386,15 @@ const DashboardPage = () => {
               <h2 className={styles.sectionTitle}>Scrape History</h2>
               {data.scrapeHistory.length === 0 ? (
                 <div className={styles.emptyState}>
-                  <div className={styles.emptyIcon}>🔍</div>
+                  <div className={styles.emptyIcon}>
+                    <FiSearch size={48} />
+                  </div>
                   <h3>No scrape history</h3>
                   <p>Start scraping products to see them here</p>
-                  <button className={styles.addButton}>Scrape a Product</button>
+                  <button className={styles.addButton} onClick={() => router.push('/')}>
+                    <FiSearch size={16} />
+                    Scrape a Product
+                  </button>
                 </div>
               ) : (
                 <div className={styles.scrapeTable}>
@@ -348,14 +416,24 @@ const DashboardPage = () => {
                           <td>
                             <div className={styles.productName}>{s.name}</div>
                             <a href={s.url} target="_blank" rel="noopener noreferrer" className={styles.productLink}>
+                              <FiEye size={14} />
                               View Product
                             </a>
                           </td>
-                          <td>{formatDate(s.date)}</td>
+                          <td>
+                            <FiCalendar size={14} />
+                            {formatDate(s.date)}
+                          </td>
                           <td>
                             <div className={styles.actionButtons}>
-                              <button className={styles.viewButton}>View</button>
-                              <button className={styles.scrapeButton}>Rescrape</button>
+                              <button className={styles.viewButton}>
+                                <FiEye size={14} />
+                                View
+                              </button>
+                              <button className={styles.scrapeButton}>
+                                <FiRefreshCw size={14} />
+                                Rescrape
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -373,10 +451,15 @@ const DashboardPage = () => {
               <h2 className={styles.sectionTitle}>Order History</h2>
               {data.orders.length === 0 ? (
                 <div className={styles.emptyState}>
-                  <div className={styles.emptyIcon}>📦</div>
+                  <div className={styles.emptyIcon}>
+                    <FiPackage size={48} />
+                  </div>
                   <h3>No orders placed yet</h3>
                   <p>Your orders will appear here once you make a purchase</p>
-                  <button className={styles.addButton}>Start Shopping</button>
+                  <button className={styles.addButton} onClick={() => router.push('/')}>
+                    <FiShoppingCart size={16} />
+                    Start Shopping
+                  </button>
                 </div>
               ) : (
                 <div className={styles.ordersList}>
@@ -391,9 +474,11 @@ const DashboardPage = () => {
                       >
                         <div className={styles.orderInfo}>
                           <div className={styles.orderId}>
+                            <FiPackage size={16} />
                             Order #{order._id.slice(-8).toUpperCase()}
                           </div>
                           <div className={styles.orderDate}>
+                            <FiCalendar size={14} />
                             {formatDate(order.createdAt)}
                           </div>
                         </div>
@@ -402,11 +487,12 @@ const DashboardPage = () => {
                             {order.status}
                           </div>
                           <div className={styles.orderTotal}>
+                            <FiDollarSign size={14} />
                             {formatPrice(order.subtotal || 0)}
                           </div>
                         </div>
                         <div className={styles.orderToggle}>
-                          {expandedOrder === order._id ? '▲' : '▼'}
+                          {expandedOrder === order._id ? <FiChevronUp size={20} /> : <FiChevronDown size={20} />}
                         </div>
                       </div>
                       
@@ -431,9 +517,13 @@ const DashboardPage = () => {
                                       <div className={styles.productName}>{p.name}</div>
                                       <div className={styles.productMeta}>
                                         <span className={styles.productSite}>{p.site}</span>
-                                        <span className={styles.productPrice}>{formatPrice(p.price)} × {p.quantity}</span>
+                                        <span className={styles.productPrice}>
+                                          <FiDollarSign size={12} />
+                                          {formatPrice(p.price)} × {p.quantity}
+                                        </span>
                                       </div>
                                       <a href={p.url} target="_blank" rel="noopener noreferrer" className={styles.productLink}>
+                                        <FiEye size={12} />
                                         View Product
                                       </a>
                                     </div>
@@ -445,13 +535,19 @@ const DashboardPage = () => {
                             <div className={styles.addressSection}>
                               <h3 className={styles.detailTitle}>Delivery Address</h3>
                               <div className={styles.addressCardSmall}>
-                                <div className={styles.addressLabel}>{order.deliveryAddress?.label}</div>
+                                <div className={styles.addressLabel}>
+                                  <FiMapPin size={14} />
+                                  {order.deliveryAddress?.label}
+                                </div>
                                 <div className={styles.addressName}>{order.deliveryAddress?.name}</div>
                                 <div className={styles.addressLine}>{order.deliveryAddress?.addressLine1}</div>
                                 <div className={styles.addressCity}>
                                   {order.deliveryAddress?.city}, {order.deliveryAddress?.state} {order.deliveryAddress?.postalCode}
                                 </div>
-                                <div className={styles.addressPhone}>📱 {order.deliveryAddress?.phone}</div>
+                                <div className={styles.addressPhone}>
+                                  <FiPhone size={14} />
+                                  {order.deliveryAddress?.phone}
+                                </div>
                               </div>
                             </div>
                             
@@ -475,10 +571,14 @@ const DashboardPage = () => {
                                   <span>{formatPrice((order.subtotal || 0) + order.shippingCharge + order.serviceCharge)}</span>
                                 </div>
                                 <div className={styles.paymentStatus}>
-                                  Status: <span className={order.paymentStatus === 'completed' ? styles.completed : styles.pending}>{order.paymentStatus}</span>
+                                  Status: <span className={order.paymentStatus === 'completed' ? styles.completed : styles.pending}>
+                                    {order.paymentStatus === 'completed' ? <FiCheckCircle size={14} /> : <FiXCircle size={14} />}
+                                    {order.paymentStatus}
+                                  </span>
                                 </div>
                                 {order.paymentProof && (
                                   <a href={order.paymentProof} target="_blank" rel="noopener noreferrer" className={styles.proofLink}>
+                                    <FiEye size={14} />
                                     View Payment Proof
                                   </a>
                                 )}
@@ -493,7 +593,10 @@ const DashboardPage = () => {
                                     <div className={styles.timelineDot}></div>
                                     <div className={styles.timelineContent}>
                                       <div className={styles.timelineStatus}>{t.status}</div>
-                                      <div className={styles.timelineDate}>{formatDate(t.date)}</div>
+                                      <div className={styles.timelineDate}>
+                                        <FiCalendar size={12} />
+                                        {formatDate(t.date)}
+                                      </div>
                                       {t.note && <div className={styles.timelineNote}>{t.note}</div>}
                                     </div>
                                   </div>
@@ -513,7 +616,7 @@ const DashboardPage = () => {
           )}
         </div>
       </div>
-    </main>
+    </div>
   );
 };
 

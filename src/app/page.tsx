@@ -16,7 +16,7 @@ interface Product {
 }
 
 function isValidProductUrl(url: string) {
-  return /^(https?:\/\/)?(www\.)?(amazon\.(com|in)|flipkart\.com|daraz\.com\.np)\//.test(url);
+  return /^(https?:\/\/)?(www\.)?(amazon\.(com|in|co\.uk|de|fr|it|es|ca|com\.au|co\.jp)|amzn\.in|flipkart\.com|dl\.flipkart\.com)\//.test(url);
 }
 
 export default function Home() {
@@ -49,15 +49,21 @@ export default function Home() {
     setProduct(null);
     
     if (!isValidProductUrl(url)) {
-      setError("Please enter a valid Amazon, Flipkart, or Daraz product URL.");
+      setError("Please enter a valid Amazon (including app links like amzn.in) or Flipkart (including app links like dl.flipkart.com) product URL.");
+      setLoading(false);
+      return;
+    }
+    
+    const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
+    if (!token) {
+      setError("You must be logged in to scrape products. Please login first.");
       setLoading(false);
       return;
     }
     
     try {
-      const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
       const headers: Record<string, string> = { "Content-Type": "application/json" };
-      if (token) headers["Authorization"] = `Bearer ${token}`;
+      headers["Authorization"] = `Bearer ${token}`;
       
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/scrape`, {
         method: "POST",
@@ -158,7 +164,7 @@ export default function Home() {
             Kartwister<span className={styles.titleDot}>.</span>
           </h1>
           <p className={styles.subtitle}>
-            Paste any product link from Amazon, Flipkart or Daraz and we&apos;ll get it delivered.
+            Paste any product link from Amazon or Flipkart and we&apos;ll get it delivered.
           </p>
         </div>
         
@@ -178,7 +184,7 @@ export default function Home() {
             <input
               className={styles.input}
               type="url"
-              placeholder="Paste product URL from Amazon, Flipkart or Daraz..."
+              placeholder="Paste product URL from Amazon (including app links) or Flipkart (including app links)..."
               value={url}
               onChange={e => setUrl(e.target.value)}
               required
@@ -199,7 +205,18 @@ export default function Home() {
           </div>
         </form>
         
-        {error && <div className={styles.error}>{error}</div>}
+        {error && (
+          <div className={styles.error}>
+            {error}
+            {error.includes("logged in") && (
+              <div className={styles.loginPrompt}>
+                <a href="/login" className={styles.loginLink}>
+                  Click here to login
+                </a>
+              </div>
+            )}
+          </div>
+        )}
         {success && <div className={styles.success}>{success}</div>}
         
         {product ? (
@@ -246,7 +263,7 @@ export default function Home() {
                 <div className={styles.stepNumber}>1</div>
                 <div className={styles.stepContent}>
                   <h3>Find a Product</h3>
-                  <p>Browse Amazon, Flipkart or Daraz for your favorite product</p>
+                  <p>Browse Amazon or Flipkart for your favorite product</p>
                 </div>
               </div>
               

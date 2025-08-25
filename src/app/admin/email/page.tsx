@@ -26,7 +26,7 @@ function AdminEmailContent() {
     if (!prefillTo) {
       const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
       if (!token) return;
-      fetch("/api/admin/users", { headers: { Authorization: `Bearer ${token}` } })
+              fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/admin/users`, { headers: { Authorization: `Bearer ${token}` } })
         .then(res => res.json())
         .then(data => setAllUsers(data))
         .catch(() => {});
@@ -43,13 +43,13 @@ function AdminEmailContent() {
     try {
       let res;
       if (bulk) {
-        res = await fetch("/api/admin/bulk-email", {
+        res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/admin/bulk-email`, {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify({ subject, text: message })
         });
       } else {
-        res = await fetch("/api/admin/email", {
+        res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/admin/email`, {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           body: JSON.stringify({ to, subject, text: message })
