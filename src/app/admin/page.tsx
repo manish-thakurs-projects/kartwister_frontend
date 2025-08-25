@@ -31,7 +31,11 @@ export default function AdminPage() {
   const [chargesLoading, setChargesLoading] = useState(true);
   const [showAddress, setShowAddress] = useState<any>(null);
   const [successMsg, setSuccessMsg] = useState('');
-  const [activeTab, setActiveTab] = useState<'orders' | 'charges' | 'qr'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'charges' | 'qr' | 'emails'>('orders');
+  const [adminEmails, setAdminEmails] = useState<string[]>([]);
+  const [adminEmailsLoading, setAdminEmailsLoading] = useState(false);
+  const [adminEmailsError, setAdminEmailsError] = useState('');
+  const [newAdminEmail, setNewAdminEmail] = useState('');
 
   // Authentication check
   useEffect(() => {
@@ -227,6 +231,77 @@ export default function AdminPage() {
     }
   };
 
+  // Fetch admin emails
+  const fetchAdminEmails = async () => {
+    setAdminEmailsLoading(true);
+    setAdminEmailsError('');
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/admin/emails`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to fetch admin emails');
+      setAdminEmails(data.adminEmails || []);
+    } catch (err: any) {
+      setAdminEmailsError(err.message);
+    } finally {
+      setAdminEmailsLoading(false);
+    }
+  };
+  useEffect(() => { if (activeTab === 'emails') fetchAdminEmails(); }, [activeTab]);
+
+  const addAdminEmail = async () => {
+    if (!newAdminEmail) return;
+    setAdminEmailsLoading(true);
+    setAdminEmailsError('');
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/admin/emails`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ email: newAdminEmail })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to add admin email');
+      setAdminEmails(data.adminEmails || []);
+      setNewAdminEmail('');
+    } catch (err: any) {
+      setAdminEmailsError(err.message);
+    } finally {
+      setAdminEmailsLoading(false);
+    }
+  };
+
+  const removeAdminEmail = async (email: string) => {
+    setAdminEmailsLoading(true);
+    setAdminEmailsError('');
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/admin/emails`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to remove admin email');
+      setAdminEmails(data.adminEmails || []);
+    } catch (err: any) {
+      setAdminEmailsError(err.message);
+    } finally {
+      setAdminEmailsLoading(false);
+    }
+  };
+
+  // Helper to check if order is new (less than 5 hours old)
+  const isOrderNew = (createdAt: string) => {
+    const orderDate = new Date(createdAt);
+    const now = new Date();
+    const diffMs = now.getTime() - orderDate.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
+    return diffHours < 5;
+  };
+
   if (checking) {
     return (
       <div className={styles.loadingOverlay}>
@@ -235,6 +310,13 @@ export default function AdminPage() {
       </div>
     );
   }
+
+  const tabList = [
+    { key: 'orders', label: <><FiPackage /> Orders</> },
+    { key: 'charges', label: <><FiSettings /> Charges</> },
+    { key: 'qr', label: <><FiUpload /> QR Code</> },
+    { key: 'emails', label: <><FiActivity /> Admin Emails</> },
+  ];
 
   return (
     <main className={styles.container}>
@@ -296,24 +378,15 @@ export default function AdminPage() {
 
       {/* Tabs */}
       <div className={styles.tabs}>
-        <button 
-          className={`${styles.tabButton} ${activeTab === 'orders' ? styles.activeTab : ''}`}
-          onClick={() => setActiveTab('orders')}
-        >
-          <FiPackage /> Orders
-        </button>
-        <button 
-          className={`${styles.tabButton} ${activeTab === 'charges' ? styles.activeTab : ''}`}
-          onClick={() => setActiveTab('charges')}
-        >
-          <FiSettings /> Charges
-        </button>
-        <button 
-          className={`${styles.tabButton} ${activeTab === 'qr' ? styles.activeTab : ''}`}
-          onClick={() => setActiveTab('qr')}
-        >
-          <FiUpload /> QR Code
-        </button>
+        {tabList.map(tab => (
+          <button
+            key={tab.key}
+            className={`${styles.tabButton} ${activeTab === tab.key ? styles.activeTab : ''}`}
+            onClick={() => setActiveTab(tab.key as any)}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* Charges Panel */}
@@ -428,7 +501,13 @@ export default function AdminPage() {
           ) : (
             <div className={styles.ordersGrid}>
               {orders.map(order => (
-                <div key={order._id} className={`${styles.orderCard} ${order.needsRecheck ? styles.needsRecheck : ''}`}>
+                <div
+                  key={order._id}
+                  className={
+                    `${styles.orderCard} ${order.needsRecheck ? styles.needsRecheck : ''} ` +
+                    (isOrderNew(order.createdAt) ? styles.newOrder : '')
+                  }
+                >
                   <div className={styles.orderHeader}>
                     <div>
                       <div className={styles.orderId}>Order #{order._id.slice(-6)}</div>
@@ -581,6 +660,47 @@ export default function AdminPage() {
         </div>
       )}
 
+      {/* Admin Emails Panel */}
+      {activeTab === 'emails' && (
+        <div className={styles.panel}>
+          <h2 className={styles.panelTitle}>Admin Notification Emails</h2>
+          <p style={{ color: '#aaa', marginBottom: 16 }}>All emails listed here will receive notifications for every new order.</p>
+          <div style={{ marginBottom: 16, display: 'flex', gap: 8 }}>
+            <input
+              type="email"
+              value={newAdminEmail}
+              onChange={e => setNewAdminEmail(e.target.value)}
+              placeholder="Add admin email"
+              className={styles.input}
+              style={{ maxWidth: 320 }}
+              disabled={adminEmailsLoading}
+            />
+            <button
+              className={styles.primaryButton}
+              onClick={addAdminEmail}
+              disabled={adminEmailsLoading || !newAdminEmail}
+              style={{ minWidth: 120 }}
+            >Add Email</button>
+          </div>
+          {adminEmailsLoading && <div className={styles.loading}>Loading...</div>}
+          {adminEmailsError && <div className={styles.errorMessage}>{adminEmailsError}</div>}
+          <ul style={{ marginTop: 16 }}>
+            {adminEmails.map(email => (
+              <li key={email} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+                <span style={{ color: '#fff', fontWeight: 500 }}>{email}</span>
+                <button
+                  className={styles.actionButton}
+                  style={{ background: '#ff3e00', color: 'white', fontSize: 13, padding: '4px 12px' }}
+                  onClick={() => removeAdminEmail(email)}
+                  disabled={adminEmailsLoading}
+                >Remove</button>
+              </li>
+            ))}
+            {adminEmails.length === 0 && !adminEmailsLoading && <li style={{ color: '#aaa' }}>No admin emails added yet.</li>}
+          </ul>
+        </div>
+      )}
+
       {/* Address Modal */}
       {showAddress && (
         <div className={styles.addressModal}>
@@ -607,4 +727,4 @@ export default function AdminPage() {
       )}
     </main>
   );
-}
+} 

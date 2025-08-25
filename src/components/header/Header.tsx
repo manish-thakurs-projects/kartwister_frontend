@@ -107,6 +107,7 @@ export default function Header({
     { href: "/", label: "Home" },
     { href: "/cart", label: "Cart" },
     { href: "/orders", label: "Orders" },
+    { href: "/dashboard", label: "Dashboard" },
   ];
 
   if (isAdmin) navLinks.push({ href: "/admin", label: "Admin" });
@@ -143,7 +144,7 @@ export default function Header({
           </div>
         )}
 
-        <button
+        {/* <button
           className={styles.themeToggle}
           onClick={toggleTheme}
           aria-label={
@@ -155,7 +156,7 @@ export default function Header({
           ) : (
             <FiMoon className={styles.themeIcon} />
           )}
-        </button>
+        </button> */}
 
         {loggedIn ? (
           <button className={styles.authButton} onClick={handleLogout}>

@@ -11,7 +11,6 @@ function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 function validatePassword(password: string) {
-  // At least 8 chars, 1 letter, 1 number
   return /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+\-=]{8,}$/.test(password);
 }
 function validatePhone(phone: string) {
@@ -192,178 +191,244 @@ export default function AuthForm() {
   };
 
   return (
-    <form className={styles.authForm}>
-      {mode === "login" && <h2>Login</h2>}
-      {mode === "register" && <h2>Register</h2>}
-      {mode === "otp" && <h2>Verify OTP</h2>}
-      {mode === "forgot" && <h2>Forgot Password</h2>}
-      {mode === "reset" && <h2>Reset Password</h2>}
-      {error && <div className={styles.error}>{error}</div>}
-      {success && <div className={styles.success}>{success}</div>}
+    <div className={styles.authContainer}>
+      <div className={styles.authCard}>
+        <div className={styles.authHeader}>
+          <h2 className={styles.authTitle}>
+            {mode === "login" && "Welcome Back"}
+            {mode === "register" && "Create Account"}
+            {mode === "otp" && "Verify Account"}
+            {mode === "forgot" && "Reset Password"}
+            {mode === "reset" && "New Password"}
+          </h2>
+          <p className={styles.authSubtitle}>
+            {mode === "login" && "Sign in to continue"}
+            {mode === "register" && "Join our community"}
+            {mode === "otp" && "Check your email for OTP"}
+            {mode === "forgot" && "Recover your account"}
+            {mode === "reset" && "Create a new password"}
+          </p>
+        </div>
 
-      {mode === "login"  && (
-        <>
-          <input
-            className={styles.input}
-            type="text"
-            placeholder="Email or Phone Number"
-            value={email || phone}
-            onChange={e => {
-              const val = e.target.value;
-              if (val.includes("@")) { setEmail(val); setPhone(""); }
-              else { setPhone(val); setEmail(""); }
-            }}
-            required
-          />
-          <input
-            className={styles.input}
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-          />
-        </>
-      )}
-      {mode === "register" && (
-        <>
-          <input
-            className={styles.input}
-            type="text"
-            placeholder="Name"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            required
-          />
-          <input
-            className={styles.input}
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            required
-          />
-          <input
-            className={styles.input}
-            type="text"
-            placeholder="Phone Number"
-            value={phone}
-            onChange={e => setPhone(e.target.value)}
-            required
-          />
-          <input
-            className={styles.input}
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-          />
-        </>
-      )}
-      {mode === "otp" && (
-        <input
-          className={styles.input}
-          type="text"
-          placeholder="Enter OTP"
-          value={otp}
-          onChange={e => setOtp(e.target.value)}
-          required
-        />
-      )}
-      {mode === "reset" && (
-        <>
-          <input
-            className={styles.input}
-            type="text"
-            placeholder="Email or Phone Number"
-            value={email || phone}
-            onChange={e => {
-              const val = e.target.value;
-              if (val.includes("@")) { setEmail(val); setPhone(""); }
-              else { setPhone(val); setEmail(""); }
-            }}
-            required
-          />
-          <input
-            className={styles.input}
-            type="text"
-            placeholder="Enter OTP"
-            value={otp}
-            onChange={e => setOtp(e.target.value)}
-            required
-          />
-          <input
-            className={styles.input}
-            type="password"
-            placeholder="New Password"
-            value={newPassword}
-            onChange={e => setNewPassword(e.target.value)}
-            required
-          />
-        </>
-      )}
+        <form className={styles.authForm}>
+          {(error || success) && (
+            <div className={`${styles.alert} ${error ? styles.error : styles.success}`}>
+              {error || success}
+            </div>
+          )}
 
-      {mode === "login" && (
-        <button className={styles.button} onClick={handleLogin} disabled={loading}>
-          {loading ? "Logging in..." : "Login"}
-        </button>
-      )}
-      {mode === "register" && (
-        <button className={styles.button} onClick={handleRegister} disabled={loading}>
-          {loading ? "Registering..." : "Register"}
-        </button>
-      )}
-      {mode === "otp" && (
-        <button className={styles.button} onClick={handleVerifyOtp} disabled={loading}>
-          {loading ? "Verifying..." : "Verify OTP"}
-        </button>
-      )}
-      {mode === "forgot" && (
-        <button className={styles.button} onClick={handleForgot} disabled={loading}>
-          {loading ? "Sending..." : "Send OTP"}
-        </button>
-      )}
-      {mode === "reset" && (
-        <button className={styles.button} onClick={handleReset} disabled={loading}>
-          {loading ? "Resetting..." : "Reset Password"}
-        </button>
-      )}
+          {mode === "login" && (
+            <>
+              <div className={styles.inputGroup}>
+                <label htmlFor="loginId" className={styles.inputLabel}>Email or Phone</label>
+                <input
+                  id="loginId"
+                  className={styles.input}
+                  type="text"
+                  value={email || phone}
+                  onChange={e => {
+                    const val = e.target.value;
+                    if (val.includes("@")) { setEmail(val); setPhone(""); }
+                    else { setPhone(val); setEmail(""); }
+                  }}
+                  required
+                />
+              </div>
+              
+              <div className={styles.inputGroup}>
+                <div className={styles.labelRow}>
+                  <label htmlFor="password" className={styles.inputLabel}>Password</label>
+                  <button
+                    type="button"
+                    className={styles.forgotLink}
+                    onClick={() => router.push("/reset-password")}
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+                <input
+                  id="password"
+                  className={styles.input}
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+            </>
+          )}
 
-      <div style={{ textAlign: "center", marginTop: "1rem" }}>
-        {mode === "login" && (
-          <>
-            <span>Don&apos;t have an account? </span>
-            <a href="#" onClick={e => { e.preventDefault(); setMode("register"); }}>Register</a>
-            <br />
-            <a href="#" onClick={e => { e.preventDefault(); setMode("forgot"); }}>Forgot password?</a>
-          </>
-        )}
-        {mode === "register" && (
-          <>
-            <span>Already have an account? </span>
-            <a href="#" onClick={e => { e.preventDefault(); setMode("login"); }}>Login</a>
-          </>
-        )}
-        {mode === "otp" && (
-          <>
-            <span>Back to </span>
-            <a href="#" onClick={e => { e.preventDefault(); setMode("login"); }}>Login</a>
-          </>
-        )}
-        {mode === "forgot" && (
-          <>
-            <span>Back to </span>
-            <a href="#" onClick={e => { e.preventDefault(); setMode("login"); }}>Login</a>
-          </>
-        )}
-        {mode === "reset" && (
-          <>
-            <span>Back to </span>
-            <a href="#" onClick={e => { e.preventDefault(); setMode("login"); }}>Login</a>
-          </>
-        )}
+          {mode === "register" && (
+            <>
+              <div className={styles.inputGroup}>
+                <label htmlFor="name" className={styles.inputLabel}>Full Name</label>
+                <input
+                  id="name"
+                  className={styles.input}
+                  type="text"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  required
+                />
+              </div>
+              
+              <div className={styles.inputGroup}>
+                <label htmlFor="email" className={styles.inputLabel}>Email Address</label>
+                <input
+                  id="email"
+                  className={styles.input}
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              
+              <div className={styles.inputGroup}>
+                <label htmlFor="phone" className={styles.inputLabel}>Phone Number</label>
+                <input
+                  id="phone"
+                  className={styles.input}
+                  type="text"
+                  value={phone}
+                  onChange={e => setPhone(e.target.value)}
+                  required
+                />
+              </div>
+              
+              <div className={styles.inputGroup}>
+                <label htmlFor="regPassword" className={styles.inputLabel}>Password</label>
+                <input
+                  id="regPassword"
+                  className={styles.input}
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+            </>
+          )}
+
+          {mode === "otp" && (
+            <div className={styles.inputGroup}>
+              <label htmlFor="otp" className={styles.inputLabel}>Verification Code</label>
+              <input
+                id="otp"
+                className={styles.input}
+                type="text"
+                placeholder="Enter 6-digit OTP"
+                value={otp}
+                onChange={e => setOtp(e.target.value)}
+                required
+              />
+            </div>
+          )}
+
+          {mode === "reset" && (
+            <>
+              <div className={styles.inputGroup}>
+                <label htmlFor="resetId" className={styles.inputLabel}>Email or Phone</label>
+                <input
+                  id="resetId"
+                  className={styles.input}
+                  type="text"
+                  value={email || phone}
+                  onChange={e => {
+                    const val = e.target.value;
+                    if (val.includes("@")) { setEmail(val); setPhone(""); }
+                    else { setPhone(val); setEmail(""); }
+                  }}
+                  required
+                />
+              </div>
+              
+              <div className={styles.inputGroup}>
+                <label htmlFor="resetOtp" className={styles.inputLabel}>Verification Code</label>
+                <input
+                  id="resetOtp"
+                  className={styles.input}
+                  type="text"
+                  placeholder="Enter 6-digit OTP"
+                  value={otp}
+                  onChange={e => setOtp(e.target.value)}
+                  required
+                />
+              </div>
+              
+              <div className={styles.inputGroup}>
+                <label htmlFor="newPassword" className={styles.inputLabel}>New Password</label>
+                <input
+                  id="newPassword"
+                  className={styles.input}
+                  type="password"
+                  placeholder="••••••••"
+                  value={newPassword}
+                  onChange={e => setNewPassword(e.target.value)}
+                  required
+                />
+              </div>
+            </>
+          )}
+
+          <div className={styles.actionGroup}>
+            <button 
+              className={`${styles.button} ${loading ? styles.loading : ''}`}
+              onClick={
+                mode === "login" ? handleLogin :
+                mode === "register" ? handleRegister :
+                mode === "otp" ? handleVerifyOtp :
+                mode === "forgot" ? handleForgot :
+                handleReset
+              }
+              disabled={loading}
+            >
+              {loading ? (
+                <span className={styles.spinner}></span>
+              ) : (
+                <>
+                  {mode === "login" && "Sign In"}
+                  {mode === "register" && "Create Account"}
+                  {mode === "otp" && "Verify Account"}
+                  {mode === "forgot" && "Send Reset Code"}
+                  {mode === "reset" && "Update Password"}
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+
+        <div className={styles.authFooter}>
+          {mode === "login" && (
+            <>
+              <p>Don't have an account? 
+                <button className={styles.footerLink} onClick={() => setMode("register")}>
+                  Sign Up
+                </button>
+              </p>
+            </>
+          )}
+          
+          {mode === "register" && (
+            <p>Already have an account? 
+              <button className={styles.footerLink} onClick={() => setMode("login")}>
+                Sign In
+              </button>
+            </p>
+          )}
+          
+          {(mode === "otp" || mode === "forgot" || mode === "reset") && (
+            <button 
+              className={styles.footerLink}
+              onClick={() => setMode("login")}
+            >
+              Back to Sign In
+            </button>
+          )}
+        </div>
       </div>
-    </form>
+    </div>
   );
-} 
+}

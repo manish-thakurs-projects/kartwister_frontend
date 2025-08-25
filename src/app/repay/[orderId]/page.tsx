@@ -22,6 +22,8 @@ export default function RepayPage() {
   });
   const [addressLoading, setAddressLoading] = useState(false);
   const [addressError, setAddressError] = useState('');
+  const [qrUrl, setQrUrl] = useState<string | null>(null);
+  const [qrLoading, setQrLoading] = useState(true);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -63,6 +65,22 @@ export default function RepayPage() {
       } catch {}
     }
     fetchAddresses();
+  }, []);
+
+  useEffect(() => {
+    async function fetchQR() {
+      setQrLoading(true);
+      try {
+        const token = typeof window !== "undefined" ? localStorage.getItem("token") : "";
+        const res = await fetch("/api/admin/public-qr", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (res.ok && data.qr) setQrUrl(data.qr);
+      } catch {}
+      setQrLoading(false);
+    }
+    fetchQR();
   }, []);
 
   function handleSelectAddress(id: string) {
@@ -157,6 +175,18 @@ export default function RepayPage() {
 
   return (
     <div className={styles.container}>
+      {/* QR Code Section */}
+      <div style={{ margin: '0 auto 32px', maxWidth: 320, textAlign: 'center' }}>
+        <h2 style={{ color: '#ff3e00', marginBottom: 12 }}>Payment QR</h2>
+        {qrLoading ? (
+          <div style={{ color: '#aaa', marginBottom: 16 }}>Loading QR...</div>
+        ) : qrUrl ? (
+          <img src={qrUrl} alt="Payment QR" style={{ width: 220, height: 220, objectFit: 'contain', background: '#fff', borderRadius: 12, marginBottom: 8 }} />
+        ) : (
+          <div style={{ color: '#aaa', marginBottom: 16 }}>No QR code available.</div>
+        )}
+        <div style={{ color: '#aaa', fontSize: 14, marginBottom: 8 }}>Scan this QR to pay for your order.</div>
+      </div>
       {addressModal && (
         <div className={styles.modalBackdrop}>
           <div className={styles.modal}>

@@ -1,8 +1,6 @@
-// AddressPage.jsx
 "use client";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Loader } from "@googlemaps/js-api-loader";
 import styles from "./page.module.css";
 
 const initialForm = {
@@ -15,8 +13,8 @@ const initialForm = {
   state: "",
   country: "",
   postalCode: "",
-  location: { lat: 0, lng: 0 },
   isDefault: false,
+  location: { lat: 0, lng: 0 }, // Add default location
 };
 
 export default function AddressPage() {
@@ -26,26 +24,11 @@ export default function AddressPage() {
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [autocomplete, setAutocomplete] = useState(null);
-  const [map, setMap] = useState(null);
-  const [marker, setMarker] = useState(null);
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     fetchAddresses();
-    // initGoogleMaps(); // Google Maps removed
   }, []);
-
-  const initGoogleMaps = () => {
-    const loader = new Loader({
-      apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
-      version: "weekly",
-      libraries: ["places"],
-    });
-
-    loader.load().then(() => {
-      // Autocomplete will be initialized when form opens
-    });
-  };
 
   async function fetchAddresses() {
     setLoading(true);
@@ -67,109 +50,44 @@ export default function AddressPage() {
     setForm((f) => ({ ...f, [name]: value }));
   }
 
-  function initAutocomplete() {
-    if (typeof google !== "undefined") {
-      const input = document.getElementById("autocomplete-input");
-      const autocomplete = new google.maps.places.Autocomplete(input, {
-        types: ["geocode"],
-      });
-
-      autocomplete.addListener("place_changed", () => {
-        const place = autocomplete.getPlace();
-        if (!place.geometry) return;
-
-        // Extract address components
-        const address = {
-          addressLine1: "",
-          addressLine2: "",
-          city: "",
-          state: "",
-          country: "",
-          postalCode: "",
-        };
-
-        place.address_components.forEach((component) => {
-          const type = component.types[0];
-          switch (type) {
-            case "street_number":
-              address.addressLine1 = component.long_name + " ";
-              break;
-            case "route":
-              address.addressLine1 += component.long_name;
-              break;
-            case "locality":
-              address.city = component.long_name;
-              break;
-            case "administrative_area_level_1":
-              address.state = component.short_name;
-              break;
-            case "country":
-              address.country = component.long_name;
-              break;
-            case "postal_code":
-              address.postalCode = component.long_name;
-              break;
-          }
-        });
-
-        setForm((f) => ({
-          ...f,
-          ...address,
-          addressLine1: address.addressLine1,
-          location: {
-            lat: place.geometry.location.lat(),
-            lng: place.geometry.location.lng(),
-          },
-        }));
-
-        // Update map
-        if (map) {
-          map.setCenter(place.geometry.location);
-          map.setZoom(15);
-          if (marker) marker.setMap(null);
-          const newMarker = new google.maps.Marker({
-            position: place.geometry.location,
-            map,
-          });
-          setMarker(newMarker);
-        }
-      });
-
-      setAutocomplete(autocomplete);
-    }
-  }
-
   function handleEdit(address) {
-    setForm(address);
+    setForm({ ...address, location: address.location || { lat: 0, lng: 0 } }); // Ensure location exists
     setEditingId(address._id);
     setShowForm(true);
-    setTimeout(initAutocomplete, 100);
   }
 
   function handleAddNew() {
     setForm(initialForm);
     setEditingId(null);
     setShowForm(true);
-    setTimeout(initAutocomplete, 100);
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setSuccessMessage("");
     try {
       const token = localStorage.getItem("token");
+      const formWithLocation = {
+        ...form,
+        location: form.location || { lat: 0, lng: 0 }, // Always send location
+      };
       if (editingId) {
-        await axios.put(`/api/user/addresses/${editingId}`, form, {
+        await axios.put(`/api/user/addresses/${editingId}`, formWithLocation, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        setSuccessMessage("Address updated successfully");
       } else {
-        await axios.post("/api/user/addresses", form, {
+        await axios.post("/api/user/addresses", formWithLocation, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        setSuccessMessage("Address added successfully");
       }
-      setShowForm(false);
-      fetchAddresses();
+      setTimeout(() => {
+        setShowForm(false);
+        fetchAddresses();
+      }, 1500);
     } catch (err) {
       setError("Failed to save address");
     }
@@ -216,6 +134,7 @@ export default function AddressPage() {
       <div className={styles.header}>
         <h1 className={styles.title}>My Addresses</h1>
         {error && <div className={styles.error}>{error}</div>}
+        {successMessage && <div className={styles.success}>{successMessage}</div>}
         <button className={styles.addButton} onClick={handleAddNew}>
           + Add New Address
         </button>
@@ -231,13 +150,16 @@ export default function AddressPage() {
             <div className={styles.formGrid}>
               <div className={styles.inputGroup}>
                 <label>Label</label>
-                <input
+                <select
                   name="label"
                   value={form.label}
                   onChange={handleChange}
                   className={styles.input}
                 >
-                </input>
+                  <option value="Home">Home</option>
+                  <option value="Work">Work</option>
+                  <option value="Other">Other</option>
+                </select>
               </div>
 
               <div className={styles.inputGroup}>
@@ -259,15 +181,6 @@ export default function AddressPage() {
                   onChange={handleChange}
                   required
                   className={styles.input}
-                />
-              </div>
-
-              <div className={styles.inputGroup}>
-                <label>Search Address</label>
-                <input
-                  id="autocomplete-input"
-                  className={styles.input}
-                  placeholder="Start typing your address..."
                 />
               </div>
 
@@ -335,81 +248,6 @@ export default function AddressPage() {
                   className={styles.input}
                 />
               </div>
-
-              {/* <div className={styles.mapContainer}>
-                <label>Location</label>
-                <div
-                  id="map"
-                  className={styles.map}
-                  ref={(node) => {
-                    if (node && !map && typeof google !== "undefined") {
-                      const newMap = new google.maps.Map(node, {
-                        center: { lat: 28.6139, lng: 77.209 },
-                        zoom: 12,
-                        styles: [
-                          {
-                            elementType: "geometry",
-                            stylers: [{ color: "#1e1e1e" }],
-                          },
-                          {
-                            elementType: "labels.text.stroke",
-                            stylers: [{ color: "#1e1e1e" }],
-                          },
-                          {
-                            elementType: "labels.text.fill",
-                            stylers: [{ color: "#757575" }],
-                          },
-                          {
-                            featureType: "administrative",
-                            elementType: "geometry",
-                            stylers: [{ visibility: "off" }],
-                          },
-                          {
-                            featureType: "poi",
-                            stylers: [{ visibility: "off" }],
-                          },
-                          {
-                            featureType: "road",
-                            elementType: "geometry",
-                            stylers: [{ color: "#2c2c2c" }],
-                          },
-                          {
-                            featureType: "road",
-                            elementType: "labels",
-                            stylers: [{ visibility: "off" }],
-                          },
-                          {
-                            featureType: "transit",
-                            stylers: [{ visibility: "off" }],
-                          },
-                        ],
-                      });
-
-                      newMap.addListener("click", (e) => {
-                        setForm((f) => ({
-                          ...f,
-                          location: {
-                            lat: e.latLng.lat(),
-                            lng: e.latLng.lng(),
-                          },
-                        }));
-                        if (marker) marker.setMap(null);
-                        const newMarker = new google.maps.Marker({
-                          position: e.latLng,
-                          map: newMap,
-                        });
-                        setMarker(newMarker);
-                      });
-
-                      setMap(newMap);
-                    }
-                  }}
-                ></div>
-                <div className={styles.coordinates}>
-                  Lat: {form.location.lat.toFixed(4)}, Lng:{" "}
-                  {form.location.lng.toFixed(4)}
-                </div>
-              </div> */}
             </div>
 
             <div className={styles.checkboxContainer}>
@@ -433,12 +271,13 @@ export default function AddressPage() {
                 className={styles.submitButton}
                 disabled={loading}
               >
-                {editingId ? "Update Address" : "Save Address"}
+                {loading ? "Processing..." : editingId ? "Update Address" : "Save Address"}
               </button>
               <button
                 type="button"
                 className={styles.cancelButton}
                 onClick={() => setShowForm(false)}
+                disabled={loading}
               >
                 Cancel
               </button>
@@ -455,6 +294,12 @@ export default function AddressPage() {
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}>📭</div>
             <p>No addresses saved yet</p>
+            <button 
+              className={styles.addEmptyButton}
+              onClick={handleAddNew}
+            >
+              Add Your First Address
+            </button>
           </div>
         ) : (
           <div className={styles.addressGrid}>
@@ -467,6 +312,10 @@ export default function AddressPage() {
               >
                 <div className={styles.cardHeader}>
                   <div className={styles.cardLabel}>
+                    <span className={styles.labelIcon}>
+                      {addr.label === "Home" ? "🏠" : 
+                       addr.label === "Work" ? "🏢" : "📍"}
+                    </span>
                     {addr.label}
                     {addr.isDefault && (
                       <span className={styles.defaultBadge}>Default</span>
@@ -499,19 +348,14 @@ export default function AddressPage() {
                   </div>
                   <div className={styles.cardField}>
                     <span className={styles.fieldName}>Address:</span>
-                    {addr.addressLine1} {addr.addressLine2}
+                    <div>
+                      {addr.addressLine1} 
+                      {addr.addressLine2 && <div>{addr.addressLine2}</div>}
+                    </div>
                   </div>
-                  <div className={styles.cardField}>
-                    <span className={styles.fieldName}>City:</span>
-                    {addr.city}
-                  </div>
-                  <div className={styles.cardField}>
-                    <span className={styles.fieldName}>State:</span>
-                    {addr.state}
-                  </div>
-                  <div className={styles.cardField}>
-                    <span className={styles.fieldName}>Postal Code:</span>
-                    {addr.postalCode}
+                  <div className={styles.addressDetails}>
+                    <div>{addr.city}, {addr.state}</div>
+                    <div>{addr.country} {addr.postalCode}</div>
                   </div>
                 </div>
 
