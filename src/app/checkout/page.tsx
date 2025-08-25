@@ -1,7 +1,37 @@
 'use client';
 import { useEffect, useState } from 'react';
 import styles from './page.module.css';
-import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+// import { useRouter } from 'next/navigation';
+
+interface Address {
+  _id: string;
+  label: string;
+  name: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2?: string;
+  city: string;
+  state: string;
+  country: string;
+  postalCode: string;
+  location: { lat: number; lng: number };
+  isDefault?: boolean;
+}
+
+interface AddressForm {
+  label: string;
+  name: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2: string;
+  city: string;
+  state: string;
+  country: string;
+  postalCode: string;
+  location: { lat: number; lng: number };
+  isDefault: boolean;
+}
 
 export default function CheckoutPage() {
   const [qrUrl, setQrUrl] = useState('');
@@ -9,16 +39,16 @@ export default function CheckoutPage() {
   const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
-  const [addresses, setAddresses] = useState<any[]>([]);
-  const [selectedAddress, setSelectedAddress] = useState<any>(null);
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [addressModal, setAddressModal] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<AddressForm>({
     label: 'Home', name: '', phone: '', addressLine1: '', addressLine2: '', city: '', state: '', country: '', postalCode: '', location: { lat: 0, lng: 0 }, isDefault: false
   });
   const [addressLoading, setAddressLoading] = useState(false);
   const [addressError, setAddressError] = useState('');
-  const router = useRouter();
+  // const router = useRouter();
 
   useEffect(() => {
     const fetchQR = async () => {
@@ -46,7 +76,7 @@ export default function CheckoutPage() {
         });
         const data = await res.json();
         setAddresses(data);
-        const def = data.find((a: any) => a.isDefault) || data[0];
+        const def = data.find((a: Address) => a.isDefault) || data[0];
         setSelectedAddress(def);
       } catch {
         setAddressError('Failed to fetch addresses');
@@ -62,12 +92,12 @@ export default function CheckoutPage() {
     setAddressModal(false);
   }
 
-  function handleChange(e: any) {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     const { name, value } = e.target;
-    setForm((f: any) => ({ ...f, [name]: value }));
+    setForm((f: AddressForm) => ({ ...f, [name]: value }));
   }
 
-  async function handleAddAddress(e: any) {
+  async function handleAddAddress(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setAddressLoading(true);
     setAddressError('');
@@ -145,8 +175,9 @@ export default function CheckoutPage() {
       setTimeout(() => { 
         window.location.href = '/orders'; 
       }, 1500);
-    } catch (err: any) {
-      setError('Failed to upload payment proof.');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+      setError('Failed to upload payment proof: ' + errorMessage);
     } finally {
       setUploading(false);
     }
@@ -368,9 +399,11 @@ export default function CheckoutPage() {
               <>
                 <h2 className={styles.sectionTitle}>Scan to Pay</h2>
                 <div className={styles.qrWrapper}>
-                  <img 
+                  <Image 
                     src={qrUrl} 
                     alt="Payment QR Code" 
+                    width={200}
+                    height={200}
                     className={styles.qrCode}
                   />
                   <div className={styles.qrOverlay}></div>

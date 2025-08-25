@@ -4,8 +4,9 @@ import styles from './page.module.css';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FiMinus, FiPlus, FiTrash2, FiMapPin, FiCheck, FiX } from 'react-icons/fi';
+import Image from 'next/image';
 
-type CartItem = {
+interface CartItem {
   productId?: string;
   name: string;
   price: number | string;
@@ -13,7 +14,18 @@ type CartItem = {
   quantity?: number;
   site: string;
   url: string;
-};
+}
+
+interface Address {
+  _id: string;
+  label: string;
+  addressLine1: string;
+  city: string;
+  state: string;
+  pincode: string;
+  phone: string;
+  isDefault?: boolean;
+}
 
 export default function CartPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -22,13 +34,12 @@ export default function CartPage() {
   const [updating, setUpdating] = useState(false);
   const [shippingCharge, setShippingCharge] = useState<number>(0);
   const [serviceCharge, setServiceCharge] = useState<number>(0);
-  const [chargesLoading, setChargesLoading] = useState(true);
   const [transactionRate, setTransactionRate] = useState<number>(0);
   const [tax, setTax] = useState<number>(0);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const router = useRouter();
-  const [addresses, setAddresses] = useState<any[]>([]);
-  const [selectedAddress, setSelectedAddress] = useState<any>(null);
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [addressModal, setAddressModal] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
   const [cartSubtotal, setCartSubtotal] = useState<number>(0);
@@ -63,8 +74,9 @@ export default function CartPage() {
       if (!res.ok) throw new Error(data.message || 'Failed to fetch cart');
       setCart(data.cart || []);
       setCartSubtotal(data.cartSubtotal || 0);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -85,7 +97,7 @@ export default function CartPage() {
         });
         const data = await res.json();
         setAddresses(data);
-        const def = data.find((a: any) => a.isDefault) || data[0];
+        const def = data.find((a: Address) => a.isDefault) || data[0];
         setSelectedAddress(def);
       } catch {}
     }
@@ -102,10 +114,9 @@ export default function CartPage() {
   // Fetch global charges
   useEffect(() => {
     const fetchCharges = async () => {
-      setChargesLoading(true);
       try {
         const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-        const headers: any = {};
+        const headers: Record<string, string> = {};
         if (token) headers['Authorization'] = `Bearer ${token}`;
         const res = await fetch(chargesEndpoint, { headers });
         const data = await res.json();
@@ -116,12 +127,11 @@ export default function CartPage() {
           setTax(data.tax || 0);
         }
       } catch {}
-      setChargesLoading(false);
     };
     fetchCharges();
-  }, []);
+  }, [chargesEndpoint]);
 
-  function isValidQuantity(q: any) {
+  function isValidQuantity(q: number) {
     return Number.isInteger(q) && q > 0;
   }
 
@@ -185,8 +195,9 @@ export default function CartPage() {
         if (!res.ok) throw new Error(data.message || 'Failed to update quantity');
         setCart(data);
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+      setError(errorMessage);
     } finally {
       setUpdating(false);
       setConfirmRemove(null);
@@ -223,7 +234,7 @@ export default function CartPage() {
             <div className={styles.selectedAddress} onClick={() => setAddressModal(true)}>
               <div className={styles.addressLabel}>{selectedAddress.label}</div>
               <div className={styles.addressDetails}>
-                {selectedAddress.addressLine1}, {selectedAddress.city}, {selectedAddress.state} - {selectedAddress.postalCode}
+                {selectedAddress.addressLine1}, {selectedAddress.city}, {selectedAddress.state} - {selectedAddress.pincode}
               </div>
               <div className={styles.changeAddress}>Change</div>
             </div>
@@ -249,7 +260,7 @@ export default function CartPage() {
             <div className={styles.emptyCart}>
               <div className={styles.emptyCartIcon}>🛒</div>
               <h3>Your cart is empty</h3>
-              <p>Looks like you haven't added any items yet</p>
+              <p>Looks like you haven&apos;t added any items yet</p>
               <button 
                 className={styles.continueShopping}
                 onClick={() => router.push('/')}
@@ -262,7 +273,12 @@ export default function CartPage() {
           {!loading && cart.map((item, idx) => (
             <div key={item.url + idx} className={styles.cartItem}>
               <div className={styles.itemImage}>
-                <img src={item.image} alt={item.name} />
+                <Image 
+                  src={item.image} 
+                  alt={item.name} 
+                  width={80}
+                  height={80}
+                />
               </div>
               
               <div className={styles.itemDetails}>
@@ -399,7 +415,7 @@ export default function CartPage() {
                       {addr.isDefault && <div className={styles.defaultBadge}>Default</div>}
                     </div>
                     <div className={styles.optionDetails}>
-                      {addr.addressLine1}, {addr.city}, {addr.state} - {addr.postalCode}
+                      {addr.addressLine1}, {addr.city}, {addr.state} - {addr.pincode}
                     </div>
                   </div>
                 ))

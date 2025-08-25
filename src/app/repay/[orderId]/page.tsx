@@ -2,22 +2,72 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import styles from "../../checkout/page.module.css";
+import Image from "next/image";
+
+interface Product {
+  _id: string;
+  name: string;
+  price: number;
+  image: string;
+  quantity: number;
+  site: string;
+  url: string;
+}
+
+interface Address {
+  _id: string;
+  label: string;
+  name: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2?: string;
+  city: string;
+  state: string;
+  country: string;
+  postalCode: string;
+  location: { lat: number; lng: number };
+  isDefault?: boolean;
+}
+
+interface AddressForm {
+  label: string;
+  name: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2: string;
+  city: string;
+  state: string;
+  country: string;
+  postalCode: string;
+  location: { lat: number; lng: number };
+  isDefault: boolean;
+}
+
+interface Order {
+  _id: string;
+  products: Product[];
+  status: string;
+  paymentStatus: string;
+  deliveryAddress: Address;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export default function RepayPage() {
   const router = useRouter();
   const params = useParams();
   const orderId = params?.orderId as string;
-  const [order, setOrder] = useState<any>(null);
+  const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [proof, setProof] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [addresses, setAddresses] = useState<any[]>([]);
-  const [selectedAddress, setSelectedAddress] = useState<any>(null);
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [addressModal, setAddressModal] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<AddressForm>({
     label: 'Home', name: '', phone: '', addressLine1: '', addressLine2: '', city: '', state: '', country: '', postalCode: '', location: { lat: 0, lng: 0 }, isDefault: false
   });
   const [addressLoading, setAddressLoading] = useState(false);
@@ -43,8 +93,9 @@ export default function RepayPage() {
         if (!res.ok) throw new Error(data.message || "Failed to fetch order");
         setOrder(data);
         setSelectedAddress(data.deliveryAddress);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -84,17 +135,17 @@ export default function RepayPage() {
   }, []);
 
   function handleSelectAddress(id: string) {
-    const addr = addresses.find((a: any) => a._id === id);
+    const addr = addresses.find((a: Address) => a._id === id);
     if (addr) setSelectedAddress(addr);
     setAddressModal(false);
   }
 
-  function handleChange(e: any) {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     const { name, value } = e.target;
-    setForm((f: any) => ({ ...f, [name]: value }));
+    setForm((f: AddressForm) => ({ ...f, [name]: value }));
   }
 
-  async function handleAddAddress(e: any) {
+  async function handleAddAddress(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setAddressLoading(true);
     setAddressError('');
@@ -155,15 +206,16 @@ export default function RepayPage() {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData
-      } as any);
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to repay order");
       setSuccess("Payment proof uploaded! Your order will be rechecked.");
       setTimeout(() => {
         router.push("/orders");
       }, 1500);
-    } catch (err: any) {
-      setError("Failed to upload payment proof.");
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+      setError("Failed to upload payment proof: " + errorMessage);
     } finally {
       setUploading(false);
     }
@@ -181,7 +233,13 @@ export default function RepayPage() {
         {qrLoading ? (
           <div style={{ color: '#aaa', marginBottom: 16 }}>Loading QR...</div>
         ) : qrUrl ? (
-          <img src={qrUrl} alt="Payment QR" style={{ width: 220, height: 220, objectFit: 'contain', background: '#fff', borderRadius: 12, marginBottom: 8 }} />
+          <Image 
+            src={qrUrl} 
+            alt="Payment QR" 
+            width={220}
+            height={220}
+            style={{ objectFit: 'contain', background: '#fff', borderRadius: 12, marginBottom: 8 }} 
+          />
         ) : (
           <div style={{ color: '#aaa', marginBottom: 16 }}>No QR code available.</div>
         )}
@@ -382,9 +440,9 @@ export default function RepayPage() {
         <div className={styles.productsSection}>
           <h2 className={styles.sectionTitle}>Your Products</h2>
           <div className={styles.productsList}>
-            {order.products.map((item: any, idx: number) => (
+            {order.products.map((item: Product, idx: number) => (
               <div key={item.url + idx} className={styles.productItem}>
-                <img src={item.image} alt={item.name} className={styles.productImage} />
+                <Image src={item.image} alt={item.name} width={80} height={80} className={styles.productImage} />
                 <div className={styles.productDetails}>
                   <div className={styles.productName}>{item.name}</div>
                   <div className={styles.productMeta}>
@@ -401,7 +459,7 @@ export default function RepayPage() {
           <div className={styles.summaryDetails}>
             <div className={styles.summaryRow}>
               <span>Subtotal</span>
-              <span>रु {order.products.reduce((sum: number, item: any) => sum + Number(item.price) * (item.quantity || 1), 0).toFixed(2)}</span>
+              <span>रु {order.products.reduce((sum: number, item: Product) => sum + Number(item.price) * (item.quantity || 1), 0).toFixed(2)}</span>
             </div>
             {/* Add other summary rows as needed, e.g., shipping, tax, etc. if available on order */}
           </div>

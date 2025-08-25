@@ -2,9 +2,40 @@
 import { useEffect, useState } from 'react';
 import styles from './page.module.css';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+
+interface Product {
+  _id: string;
+  name: string;
+  price: number;
+  image: string;
+  quantity: number;
+  site: string;
+  url: string;
+}
+
+interface DeliveryAddress {
+  label: string;
+  addressLine1: string;
+  city: string;
+  state: string;
+  pincode: string;
+  phone: string;
+}
+
+interface Order {
+  _id: string;
+  products: Product[];
+  status: string;
+  paymentStatus: string;
+  deliveryAddress: DeliveryAddress;
+  subtotal?: number;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export default function OrdersPage() {
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const router = useRouter();
@@ -26,8 +57,9 @@ export default function OrdersPage() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || 'Failed to fetch orders');
         setOrders(data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -46,7 +78,7 @@ export default function OrdersPage() {
       {!loading && !error && orders.length === 0 && (
         <div className={styles.empty}>
           <div className={styles.emptyIcon}>📦</div>
-          <p>You haven't placed any orders yet</p>
+          <p>You haven&apos;t placed any orders yet</p>
           <button 
             className={styles.ctaButton}
             onClick={() => router.push('/')}
@@ -97,11 +129,13 @@ export default function OrdersPage() {
             )}
 
             <div className={styles.productsContainer}>
-              {order.products.map((item: any, idx: number) => (
+              {order.products.map((item: Product, idx: number) => (
                 <div key={item.url + idx} className={styles.productItem}>
-                  <img 
+                  <Image 
                     src={item.image} 
                     alt={item.name} 
+                    width={60}
+                    height={60}
                     className={styles.productImage}
                   />
                   <div className={styles.productInfo}>

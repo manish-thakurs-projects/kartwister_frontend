@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import styles from "./page.module.css";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 interface Address {
   _id: string;
@@ -36,6 +37,12 @@ interface OrderProduct {
   url: string;
 }
 
+interface TrackingStep {
+  status: string;
+  note?: string;
+  date: string;
+}
+
 interface Order {
   _id: string;
   products: OrderProduct[];
@@ -45,11 +52,11 @@ interface Order {
   shippingCharge: number;
   serviceCharge: number;
   deliveryAddress: Address;
-  tracking: any[];
+  tracking: TrackingStep[];
   completed: boolean;
   repaidFor?: string;
   needsRecheck: boolean;
-  subtotal: number;
+  subtotal?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -94,8 +101,9 @@ const DashboardPage = () => {
         if (!res.ok) throw new Error("Failed to fetch dashboard data");
         const json = await res.json();
         setData(json);
-      } catch (err: any) {
-        setError(err.message || "Unknown error");
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : "Unknown error";
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -394,7 +402,7 @@ const DashboardPage = () => {
                             {order.status}
                           </div>
                           <div className={styles.orderTotal}>
-                            {formatPrice(order.subtotal)}
+                            {formatPrice(order.subtotal || 0)}
                           </div>
                         </div>
                         <div className={styles.orderToggle}>
@@ -411,10 +419,12 @@ const DashboardPage = () => {
                                 {order.products.map((p, idx) => (
                                   <div key={idx} className={styles.productItem}>
                                     <div className={styles.productImage}>
-                                      <img 
+                                      <Image 
                                         src={p.image} 
                                         alt={p.name} 
-                                        onError={(e) => (e.currentTarget.src = '/placeholder-image.svg')}
+                                        width={60}
+                                        height={60}
+                                        onError={() => '/placeholder-image.svg'}
                                       />
                                     </div>
                                     <div className={styles.productInfo}>
@@ -450,7 +460,7 @@ const DashboardPage = () => {
                               <div className={styles.paymentInfo}>
                                 <div className={styles.paymentItem}>
                                   <span>Subtotal:</span>
-                                  <span>{formatPrice(order.subtotal)}</span>
+                                  <span>{formatPrice(order.subtotal || 0)}</span>
                                 </div>
                                 <div className={styles.paymentItem}>
                                   <span>Shipping:</span>
@@ -462,7 +472,7 @@ const DashboardPage = () => {
                                 </div>
                                 <div className={styles.paymentItemTotal}>
                                   <span>Total:</span>
-                                  <span>{formatPrice(order.subtotal + order.shippingCharge + order.serviceCharge)}</span>
+                                  <span>{formatPrice((order.subtotal || 0) + order.shippingCharge + order.serviceCharge)}</span>
                                 </div>
                                 <div className={styles.paymentStatus}>
                                   Status: <span className={order.paymentStatus === 'completed' ? styles.completed : styles.pending}>{order.paymentStatus}</span>

@@ -4,9 +4,45 @@ import { useEffect, useState } from "react";
 import styles from "./page.module.css";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
+
+interface Product {
+  _id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  image: string;
+  site: string;
+  url: string;
+}
+
+interface DeliveryAddress {
+  label: string;
+  addressLine1: string;
+  city: string;
+  state: string;
+  pincode: string;
+  phone: string;
+}
+
+interface User {
+  _id: string;
+  email: string;
+}
+
+interface Order {
+  _id: string;
+  user: User;
+  products: Product[];
+  totalAmount: number;
+  deliveryAddress: DeliveryAddress;
+  createdAt: string;
+  updatedAt: string;
+  status: string;
+}
 
 export default function CompletedOrdersPage() {
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
@@ -29,8 +65,9 @@ export default function CompletedOrdersPage() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "Failed to fetch completed orders");
         setOrders(data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -116,7 +153,7 @@ export default function CompletedOrdersPage() {
                 <div className={styles.orderMeta}>
                   <div className={styles.orderDate}>{formatDate(order.createdAt)}</div>
                   <div className={styles.orderTotal}>
-                    {formatPrice(order.totalAmount || order.products.reduce((sum: number, item: any) => sum + (item.price * (item.quantity || 1)), 0))}
+                    {formatPrice(order.totalAmount || order.products.reduce((sum: number, item: Product) => sum + (item.price * (item.quantity || 1)), 0))}
                   </div>
                 </div>
                 <div className={styles.orderToggle}>
@@ -129,13 +166,15 @@ export default function CompletedOrdersPage() {
                   <div className={styles.productsSection}>
                     <h3 className={styles.sectionTitle}>Products</h3>
                     <div className={styles.productsGrid}>
-                      {order.products.map((item: any, idx: number) => (
+                      {order.products.map((item: Product, idx: number) => (
                         <div key={item.url + idx} className={styles.productItem}>
                           <div className={styles.productImage}>
-                            <img 
+                            <Image 
                               src={item.image} 
                               alt={item.name} 
-                              onError={(e) => (e.currentTarget.src = '/placeholder-image.svg')}
+                              width={80}
+                              height={80}
+                              onError={() => '/placeholder-image.svg'}
                             />
                           </div>
                           <div className={styles.productInfo}>
@@ -208,13 +247,13 @@ export default function CompletedOrdersPage() {
           <div className={styles.summaryItem}>
             <span className={styles.summaryLabel}>Total Revenue</span>
             <span className={styles.summaryValue}>
-              {formatPrice(orders.reduce((sum, order) => sum + (order.totalAmount || order.products.reduce((s: number, p: any) => s + (p.price * (p.quantity || 1)), 0)), 0))}
+              {formatPrice(orders.reduce((sum, order) => sum + (order.totalAmount || order.products.reduce((s: number, p: Product) => s + (p.price * (p.quantity || 1)), 0)), 0))}
             </span>
           </div>
           <div className={styles.summaryItem}>
             <span className={styles.summaryLabel}>Avg. Order Value</span>
             <span className={styles.summaryValue}>
-              {formatPrice(orders.reduce((sum, order) => sum + (order.totalAmount || order.products.reduce((s: number, p: any) => s + (p.price * (p.quantity || 1)), 0)), 0) / orders.length)}
+              {formatPrice(orders.reduce((sum, order) => sum + (order.totalAmount || order.products.reduce((s: number, p: Product) => s + (p.price * (p.quantity || 1)), 0)), 0) / orders.length)}
             </span>
           </div>
         </div>

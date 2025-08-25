@@ -3,7 +3,66 @@ import { useEffect, useState } from 'react';
 import styles from './page.module.css';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FiActivity, FiPackage, FiCheckCircle, FiDollarSign, FiSettings, FiUpload, FiXCircle, FiMapPin, FiEye, FiCheck, FiRefreshCw } from 'react-icons/fi';
+import { FiActivity, FiPackage, FiCheckCircle, FiSettings, FiUpload, FiXCircle, FiMapPin, FiEye, FiCheck, FiRefreshCw } from 'react-icons/fi';
+import Image from 'next/image';
+
+interface Product {
+  _id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  image: string;
+  site: string;
+  url: string;
+}
+
+interface DeliveryAddress {
+  label: string;
+  name: string;
+  addressLine1: string;
+  addressLine2?: string;
+  city: string;
+  state: string;
+  pincode: string;
+  phone: string;
+}
+
+interface User {
+  _id: string;
+  email: string;
+  phone?: string;
+}
+
+interface TrackingStep {
+  status: string;
+  note?: string;
+  date: string;
+}
+
+interface Order {
+  _id: string;
+  user: User;
+  products: Product[];
+  totalAmount: number;
+  deliveryAddress: DeliveryAddress;
+  createdAt: string;
+  updatedAt: string;
+  status: string;
+  tracking: TrackingStep[];
+  needsRecheck?: boolean;
+  paymentStatus?: string;
+  paymentProof?: string;
+  shippingCharge?: number;
+  serviceCharge?: number;
+  subtotal?: number;
+  completed?: boolean;
+}
+
+interface Stats {
+  total: number;
+  pending: number;
+  paid: number;
+}
 
 function parseJwt(token: string) {
   try {
@@ -17,10 +76,10 @@ export default function AdminPage() {
   // State hooks
   const [checking, setChecking] = useState(true);
   const router = useRouter();
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [stats, setStats] = useState({ total: 0, pending: 0, paid: 0 });
+  const [stats, setStats] = useState<Stats>({ total: 0, pending: 0, paid: 0 });
   const [uploading, setUploading] = useState(false);
   const [qrUrl, setQrUrl] = useState('');
   const [showProof, setShowProof] = useState<string | null>(null);
@@ -29,7 +88,7 @@ export default function AdminPage() {
   const [transactionRate, setTransactionRate] = useState<number>(0);
   const [tax, setTax] = useState<number>(0);
   const [chargesLoading, setChargesLoading] = useState(true);
-  const [showAddress, setShowAddress] = useState<any>(null);
+  const [showAddress, setShowAddress] = useState<Order | null>(null);
   const [successMsg, setSuccessMsg] = useState('');
   const [activeTab, setActiveTab] = useState<'orders' | 'charges' | 'qr' | 'emails'>('orders');
   const [adminEmails, setAdminEmails] = useState<string[]>([]);
@@ -68,11 +127,12 @@ export default function AdminPage() {
         setOrders(data);
         setStats({
           total: data.length,
-          pending: data.filter((o: any) => o.status === 'pending').length,
-          paid: data.filter((o: any) => o.status === 'paid').length
+          pending: data.filter((o: Order) => o.status === 'pending').length,
+          paid: data.filter((o: Order) => o.status === 'paid').length
         });
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -130,8 +190,9 @@ export default function AdminPage() {
       if (!res.ok) throw new Error(data.message || 'Failed to update charges');
       setSuccessMsg('Charges updated successfully!');
       setTimeout(() => setSuccessMsg(''), 3000);
-    } catch (err: any) {
-      setError('Error: ' + err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+      setError('Error: ' + errorMessage);
     }
   };
 
@@ -146,10 +207,11 @@ export default function AdminPage() {
       });
       if (!res.ok) throw new Error('Failed to update status');
       setOrders(orders.map(order => 
-        order._id === id ? { ...order, status, tracking: [...order.tracking, { status, note, date: new Date() }] } : order
+        order._id === id ? { ...order, status, tracking: [...order.tracking, { status, note, date: new Date().toISOString() }] } : order
       ));
-    } catch (err: any) {
-      setError('Error: ' + err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+      setError('Error: ' + errorMessage);
     }
   };
 
@@ -165,8 +227,9 @@ export default function AdminPage() {
       setOrders(orders.map(order => 
         order._id === id ? { ...order, paymentStatus: 'approved' } : order
       ));
-    } catch (err: any) {
-      setError('Error: ' + err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+      setError('Error: ' + errorMessage);
     }
   };
 
@@ -188,8 +251,9 @@ export default function AdminPage() {
       setQrUrl(data.qr);
       setSuccessMsg('QR code uploaded successfully!');
       setTimeout(() => setSuccessMsg(''), 3000);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+      setError(errorMessage);
     } finally {
       setUploading(false);
     }
@@ -209,8 +273,9 @@ export default function AdminPage() {
       setSuccessMsg('Order marked as completed!');
       setOrders(orders.filter(o => o._id !== id));
       setTimeout(() => setSuccessMsg(''), 3000);
-    } catch (err: any) {
-      setError('Failed to complete delivery: ' + err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+      setError('Failed to complete delivery: ' + errorMessage);
     }
   };
 
@@ -226,8 +291,9 @@ export default function AdminPage() {
       setOrders(orders.map(order => 
         order._id === id ? { ...order, paymentStatus: 'rejected', status: 'rejected' } : order
       ));
-    } catch (err: any) {
-      setError('Error: ' + err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+      setError('Error: ' + errorMessage);
     }
   };
 
@@ -243,8 +309,9 @@ export default function AdminPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Failed to fetch admin emails');
       setAdminEmails(data.adminEmails || []);
-    } catch (err: any) {
-      setAdminEmailsError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+      setAdminEmailsError(errorMessage);
     } finally {
       setAdminEmailsLoading(false);
     }
@@ -266,8 +333,9 @@ export default function AdminPage() {
       if (!res.ok) throw new Error(data.message || 'Failed to add admin email');
       setAdminEmails(data.adminEmails || []);
       setNewAdminEmail('');
-    } catch (err: any) {
-      setAdminEmailsError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+      setAdminEmailsError(errorMessage);
     } finally {
       setAdminEmailsLoading(false);
     }
@@ -286,8 +354,9 @@ export default function AdminPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Failed to remove admin email');
       setAdminEmails(data.adminEmails || []);
-    } catch (err: any) {
-      setAdminEmailsError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+      setAdminEmailsError(errorMessage);
     } finally {
       setAdminEmailsLoading(false);
     }
@@ -382,7 +451,7 @@ export default function AdminPage() {
           <button
             key={tab.key}
             className={`${styles.tabButton} ${activeTab === tab.key ? styles.activeTab : ''}`}
-            onClick={() => setActiveTab(tab.key as any)}
+            onClick={() => setActiveTab(tab.key as 'orders' | 'charges' | 'qr' | 'emails')}
           >
             {tab.label}
           </button>
@@ -456,7 +525,13 @@ export default function AdminPage() {
             {qrUrl ? (
               <>
                 <div className={styles.qrPreview}>
-                  <img src={qrUrl} alt="QR Code" className={styles.qrImage} />
+                  <Image 
+                    src={qrUrl} 
+                    alt="QR Code" 
+                    width={200}
+                    height={200}
+                    className={styles.qrImage} 
+                  />
                 </div>
                 <p className={styles.qrUrl}>Current QR: {qrUrl}</p>
               </>
@@ -538,11 +613,13 @@ export default function AdminPage() {
                   </div>
                   
                   <div className={styles.orderProducts}>
-                    {order.products.map((item: any, idx: number) => (
+                    {order.products.map((item: Product, idx: number) => (
                       <div key={item.url + idx} className={styles.productItem}>
-                        <img 
+                        <Image 
                           src={item.image} 
                           alt={item.name} 
+                          width={60}
+                          height={60}
                           className={styles.productImage} 
                         />
                         <div className={styles.productDetails}>
@@ -581,7 +658,7 @@ export default function AdminPage() {
                     {order.paymentProof && (
                       <button 
                         className={styles.actionButton}
-                        onClick={() => setShowProof(order.paymentProof)}
+                        onClick={() => setShowProof(order.paymentProof || null)}
                       >
                         <FiEye /> View Proof
                       </button>
@@ -596,9 +673,11 @@ export default function AdminPage() {
                           >
                             <FiXCircle />
                           </button>
-                          <img 
+                          <Image 
                             src={order.paymentProof} 
                             alt="Payment Proof" 
+                            width={400}
+                            height={300}
                             className={styles.proofImage} 
                           />
                           <div style={{ display: 'flex', gap: 12, marginTop: 24, justifyContent: 'center' }}>
@@ -647,7 +726,7 @@ export default function AdminPage() {
                     {order.deliveryAddress && (
                       <button 
                         className={styles.actionButton}
-                        onClick={() => setShowAddress(order.deliveryAddress)}
+                        onClick={() => setShowAddress(order)}
                       >
                         <FiMapPin /> Address
                       </button>
@@ -713,14 +792,13 @@ export default function AdminPage() {
             </button>
             <h3>Delivery Address</h3>
             <div className={styles.addressDetails}>
-              <div><span>Label:</span> {showAddress.label}</div>
-              <div><span>Name:</span> {showAddress.name}</div>
-              <div><span>Phone:</span> {showAddress.phone}</div>
-              <div><span>Address:</span> {showAddress.addressLine1} {showAddress.addressLine2}</div>
-              <div><span>City:</span> {showAddress.city}</div>
-              <div><span>State:</span> {showAddress.state}</div>
-              <div><span>Country:</span> {showAddress.country}</div>
-              <div><span>Postal Code:</span> {showAddress.postalCode}</div>
+              <div><span>Label:</span> {showAddress.deliveryAddress.label}</div>
+              <div><span>Name:</span> {showAddress.deliveryAddress.name}</div>
+              <div><span>Phone:</span> {showAddress.deliveryAddress.phone}</div>
+              <div><span>Address:</span> {showAddress.deliveryAddress.addressLine1} {showAddress.deliveryAddress.addressLine2}</div>
+              <div><span>City:</span> {showAddress.deliveryAddress.city}</div>
+              <div><span>State:</span> {showAddress.deliveryAddress.state}</div>
+              <div><span>Postal Code:</span> {showAddress.deliveryAddress.pincode}</div>
             </div>
           </div>
         </div>

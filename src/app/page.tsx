@@ -4,6 +4,16 @@ import { useState, useEffect } from "react";
 import styles from "./page.module.css";
 import { useRouter } from 'next/navigation';
 import { FiArrowRight, FiShoppingCart, FiZap, FiSearch, FiLoader } from "react-icons/fi";
+import Image from "next/image";
+
+interface Product {
+  productId?: string;
+  name: string;
+  price: number;
+  image: string;
+  site: string;
+  url: string;
+}
 
 function isValidProductUrl(url: string) {
   return /^(https?:\/\/)?(www\.)?(amazon\.(com|in)|flipkart\.com|daraz\.com\.np)\//.test(url);
@@ -11,7 +21,7 @@ function isValidProductUrl(url: string) {
 
 export default function Home() {
   const [url, setUrl] = useState("");
-  const [product, setProduct] = useState(null);
+  const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -46,7 +56,7 @@ export default function Home() {
     
     try {
       const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
-      const headers: any = { "Content-Type": "application/json" };
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
       if (token) headers["Authorization"] = `Bearer ${token}`;
       
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/scrape`, {
@@ -58,8 +68,9 @@ export default function Home() {
       const data = await res.json();
       if (!res.ok || !data.name) throw new Error(data.message || "Could not scrape product");
       setProduct(data);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -83,21 +94,22 @@ export default function Home() {
           Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
-          productId: product.productId || undefined,
-          name: product.name,
-          price: product.price,
-          image: product.image,
+          productId: product?.productId || undefined,
+          name: product?.name,
+          price: product?.price,
+          image: product?.image,
           quantity: 1,
-          site: product.site,
-          url: product.url
+          site: product?.site,
+          url: product?.url
         })
       });
       
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Could not add to cart");
       setSuccess("Added to cart!");
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+      setError(errorMessage);
     }
   };
 
@@ -119,21 +131,22 @@ export default function Home() {
           Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
-          productId: product.productId || undefined,
-          name: product.name,
-          price: product.price,
-          image: product.image,
+          productId: product?.productId || undefined,
+          name: product?.name,
+          price: product?.price,
+          image: product?.image,
           quantity: 1,
-          site: product.site,
-          url: product.url
+          site: product?.site,
+          url: product?.url
         })
       });
       
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Could not add to cart");
       router.push('/cart');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+      setError(errorMessage);
     }
   };
 
@@ -145,7 +158,7 @@ export default function Home() {
             Kartwister<span className={styles.titleDot}>.</span>
           </h1>
           <p className={styles.subtitle}>
-            Paste any product link from Amazon, Flipkart or Daraz and we'll get it delivered.
+            Paste any product link from Amazon, Flipkart or Daraz and we&apos;ll get it delivered.
           </p>
         </div>
         
@@ -192,11 +205,13 @@ export default function Home() {
         {product ? (
           <div className={styles.productCard}>
             <div className={styles.productImageContainer}>
-              <img 
-                src={product.image} 
-                alt={product.name} 
-                className={styles.productImage}
-              />
+                                <Image 
+                    src={product.image} 
+                    alt={product.name} 
+                    width={200}
+                    height={200}
+                    className={styles.productImage}
+                  />
             </div>
             
             <div className={styles.productInfo}>
@@ -239,7 +254,7 @@ export default function Home() {
                 <div className={styles.stepNumber}>2</div>
                 <div className={styles.stepContent}>
                   <h3>Copy Product URL</h3>
-                  <p>Copy the link from your browser's address bar</p>
+                  <p>Copy the link from your browser&apos;s address bar</p>
                 </div>
               </div>
               
@@ -247,7 +262,7 @@ export default function Home() {
                 <div className={styles.stepNumber}>3</div>
                 <div className={styles.stepContent}>
                   <h3>Paste & Scrape</h3>
-                  <p>Paste the URL above and click "Scrape"</p>
+                  <p>Paste the URL above and click &quot;Scrape&quot;</p>
                 </div>
               </div>
             </div>

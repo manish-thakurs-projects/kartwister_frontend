@@ -2,11 +2,38 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import styles from './page.module.css';
+import Image from 'next/image';
+
+interface Product {
+  _id: string;
+  name: string;
+  price: number;
+  image: string;
+  quantity: number;
+  site: string;
+  url: string;
+}
+
+interface TrackingStep {
+  status: string;
+  note?: string;
+  date: string;
+}
+
+interface Order {
+  _id: string;
+  products: Product[];
+  status: string;
+  paymentStatus: string;
+  tracking: TrackingStep[];
+  createdAt: string;
+  updatedAt: string;
+}
 
 export default function TrackOrderPage() {
   const params = useParams();
   const orderId = params?.id as string;
-  const [order, setOrder] = useState<any>(null);
+  const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -27,8 +54,9 @@ export default function TrackOrderPage() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || 'Failed to fetch order');
         setOrder(data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -57,11 +85,13 @@ export default function TrackOrderPage() {
             </div>
             
             <div className={styles.productsContainer}>
-              {order.products.map((item: any, idx: number) => (
+              {order.products.map((item: Product, idx: number) => (
                 <div key={item.url + idx} className={styles.productCard}>
-                  <img 
+                  <Image 
                     src={item.image} 
                     alt={item.name} 
+                    width={80}
+                    height={80}
                     className={styles.productImage}
                   />
                   <div className={styles.productInfo}>
@@ -78,7 +108,7 @@ export default function TrackOrderPage() {
             <h3 className={styles.trackingTitle}>Delivery Progress</h3>
             
             <div className={styles.timeline}>
-              {order.tracking?.map((step: any, idx: number) => (
+              {order.tracking?.map((step: TrackingStep, idx: number) => (
                 <div key={idx} className={styles.timelineStep}>
                   <div className={styles.status}>
                     {step.status}

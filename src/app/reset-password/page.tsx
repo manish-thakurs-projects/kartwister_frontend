@@ -29,8 +29,9 @@ const ResetPasswordPage = () => {
       if (!res.ok) throw new Error(data.message || "Failed to send OTP");
       setSuccess("OTP sent to your email. Please check your inbox.");
       setStep(2);
-    } catch (err: any) {
-      setError(err.message || "Unknown error");
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -52,8 +53,9 @@ const ResetPasswordPage = () => {
       if (!res.ok) throw new Error(data.message || "Failed to reset password");
       setSuccess("Password updated successfully! You can now log in with your new password.");
       setStep(3);
-    } catch (err: any) {
-      setError(err.message || "Unknown error");
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

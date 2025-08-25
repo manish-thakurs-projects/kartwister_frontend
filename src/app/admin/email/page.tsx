@@ -1,11 +1,16 @@
 "use client";
-import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import styles from "./page.module.css";
 import Link from "next/link";
 
-export default function AdminEmailPage() {
-  const router = useRouter();
+interface User {
+  _id: string;
+  email: string;
+  name?: string;
+}
+
+function AdminEmailContent() {
   const searchParams = useSearchParams();
   const prefillTo = searchParams.get("to") || "";
   const [to, setTo] = useState(prefillTo);
@@ -14,7 +19,7 @@ export default function AdminEmailPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
-  const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
   const [bulk, setBulk] = useState(!prefillTo);
 
   useEffect(() => {
@@ -28,7 +33,7 @@ export default function AdminEmailPage() {
     }
   }, [prefillTo]);
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setSuccess("");
@@ -55,8 +60,9 @@ export default function AdminEmailPage() {
       setSuccess("Email sent successfully!");
       setSubject(""); 
       setMessage("");
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+      setError(errorMessage);
     }
     setLoading(false);
   };
@@ -163,5 +169,13 @@ export default function AdminEmailPage() {
         </div>
       )}
     </main>
+  );
+}
+
+export default function AdminEmailPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AdminEmailContent />
+    </Suspense>
   );
 }

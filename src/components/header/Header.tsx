@@ -7,25 +7,14 @@ import { useState, useEffect, useRef } from "react";
 import {
   FiMenu,
   FiX,
-  FiMoon,
-  FiSun,
-  FiShoppingCart,
   FiUser,
 } from "react-icons/fi";
 import { IoMdClose } from "react-icons/io";
 
-function parseJwt(token: string) {
-  try {
-    return JSON.parse(atob(token.split(".")[1]));
-  } catch {
-    return null;
-  }
-}
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 export default function Header({
-  onToggleTheme,
+  // onToggleTheme,
 }: {
   onToggleTheme?: () => void;
 }) {
@@ -95,13 +84,14 @@ export default function Header({
     window.location.reload();
   };
 
-  const toggleTheme = () => {
-    const newDarkMode = !isDarkMode;
-    setIsDarkMode(newDarkMode);
-    if (onToggleTheme) onToggleTheme();
-    // Persist theme preference
-    localStorage.setItem("theme", newDarkMode ? "dark" : "light");
-  };
+  // Theme toggle functionality is commented out in the UI
+  // const toggleTheme = () => {
+  //   const newDarkMode = !isDarkMode;
+  //   setIsDarkMode(newDarkMode);
+  //   if (onToggleTheme) onToggleTheme();
+  //   // Persist theme preference
+  //   localStorage.setItem("theme", newDarkMode ? "dark" : "light");
+  // };
 
   const navLinks = [
     { href: "/", label: "Home" },

@@ -3,6 +3,21 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import styles from "./page.module.css";
 
+interface Address {
+  _id: string;
+  label: string;
+  name: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2?: string;
+  city: string;
+  state: string;
+  country: string;
+  postalCode: string;
+  location: { lat: number; lng: number };
+  isDefault?: boolean;
+}
+
 const initialForm = {
   label: "Home",
   name: "",
@@ -18,9 +33,9 @@ const initialForm = {
 };
 
 export default function AddressPage() {
-  const [addresses, setAddresses] = useState([]);
+  const [addresses, setAddresses] = useState<Address[]>([]);
   const [form, setForm] = useState(initialForm);
-  const [editingId, setEditingId] = useState(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -39,19 +54,24 @@ export default function AddressPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       setAddresses(res.data);
-    } catch (err) {
+    } catch {
       setError("Failed to fetch addresses");
     }
     setLoading(false);
   }
 
-  function handleChange(e) {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     const { name, value } = e.target;
     setForm((f) => ({ ...f, [name]: value }));
   }
 
-  function handleEdit(address) {
-    setForm({ ...address, location: address.location || { lat: 0, lng: 0 } }); // Ensure location exists
+  function handleEdit(address: Address) {
+    setForm({ 
+      ...address, 
+      addressLine2: address.addressLine2 || "",
+      isDefault: address.isDefault || false,
+      location: address.location || { lat: 0, lng: 0 } 
+    }); // Ensure location exists
     setEditingId(address._id);
     setShowForm(true);
   }
@@ -62,7 +82,7 @@ export default function AddressPage() {
     setShowForm(true);
   }
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setError("");
@@ -88,13 +108,13 @@ export default function AddressPage() {
         setShowForm(false);
         fetchAddresses();
       }, 1500);
-    } catch (err) {
+    } catch {
       setError("Failed to save address");
     }
     setLoading(false);
   }
 
-  async function handleDelete(id) {
+  async function handleDelete(id: string) {
     if (!window.confirm("Delete this address?")) return;
     setLoading(true);
     setError("");
@@ -104,13 +124,13 @@ export default function AddressPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       fetchAddresses();
-    } catch (err) {
+    } catch {
       setError("Failed to delete address");
     }
     setLoading(false);
   }
 
-  async function handleSelect(id) {
+  async function handleSelect(id: string) {
     setLoading(true);
     setError("");
     try {
@@ -123,7 +143,7 @@ export default function AddressPage() {
         }
       );
       fetchAddresses();
-    } catch (err) {
+    } catch {
       setError("Failed to select address");
     }
     setLoading(false);

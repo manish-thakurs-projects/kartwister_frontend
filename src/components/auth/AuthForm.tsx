@@ -5,6 +5,19 @@ import { useRouter } from "next/navigation";
 
 export type AuthMode = "login" | "register" | "otp" | "forgot" | "reset";
 
+interface LoginPayload {
+  password: string;
+  email?: string;
+  phone?: string;
+}
+
+interface RegisterPayload {
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+}
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 function validateEmail(email: string) {
@@ -48,7 +61,7 @@ export default function AuthForm() {
     }
     try {
       // Only send the field the user entered
-      const payload: any = { password };
+      const payload: LoginPayload = { password };
       if (email) payload.email = email;
       if (phone) payload.phone = phone;
       console.log("Login payload:", payload);
@@ -64,9 +77,10 @@ export default function AuthForm() {
       setSuccess("Logged in successfully!");
       router.replace('/');
       // Optionally redirect or reload
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Login error:", err);
-      setError(err.message);
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -88,7 +102,7 @@ export default function AuthForm() {
       setError("Password must be at least 8 characters and contain a letter and a number."); setLoading(false); return;
     }
     try {
-      const payload = { name, email, phone, password };
+      const payload: RegisterPayload = { name, email, phone, password };
       console.log("Register payload:", payload);
       const res = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
@@ -100,9 +114,10 @@ export default function AuthForm() {
       if (!res.ok) throw new Error(data.message || "Registration failed");
       setSuccess("Registered. Check your email for OTP.");
       setMode("otp");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Register error:", err);
-      setError(err.message);
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -125,9 +140,10 @@ export default function AuthForm() {
       if (!res.ok) throw new Error(data.message || "OTP verification failed");
       setSuccess("OTP verified. You can now log in.");
       setMode("login");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Verify OTP error:", err);
-      setError(err.message);
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -153,9 +169,10 @@ export default function AuthForm() {
       if (!res.ok) throw new Error(data.message || "Failed to send OTP");
       setSuccess("OTP sent to your email");
       setMode("reset");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Forgot password error:", err);
-      setError(err.message);
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -182,9 +199,10 @@ export default function AuthForm() {
       if (!res.ok) throw new Error(data.message || "Failed to reset password");
       setSuccess("Password reset. You can now log in.");
       setMode("login");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Reset password error:", err);
-      setError(err.message);
+      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -403,7 +421,7 @@ export default function AuthForm() {
         <div className={styles.authFooter}>
           {mode === "login" && (
             <>
-              <p>Don't have an account? 
+                              <p>Don&apos;t have an account? 
                 <button className={styles.footerLink} onClick={() => setMode("register")}>
                   Sign Up
                 </button>
