@@ -19,7 +19,6 @@ import {
   FiEye,
   FiRefreshCw,
   FiShoppingCart,
-  FiArrowRight,
   FiChevronDown,
   FiChevronUp,
   FiPlus,
