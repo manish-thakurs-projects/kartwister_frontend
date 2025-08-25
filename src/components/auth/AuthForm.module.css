@@ -12,7 +12,7 @@
   max-width: 420px;
   background: var(--card-bg);
   border-radius: 16px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   border: 1px solid var(--border);
   transition: all 0.3s ease;
@@ -28,27 +28,27 @@
 .authTitle {
   font-size: 1.75rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: white;
   margin-bottom: 0.5rem;
 }
 
 .authSubtitle {
   font-size: 1rem;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.9);
   margin-top: 0;
 }
 
 .authForm {
   padding: 2rem;
-  background-color: #1a1a1a;
+  background-color: var(--background);
 }
 
 .authFooter {
   padding: 1.5rem 2rem;
   text-align: center;
   font-size: 0.9rem;
-  background-color: #000000;
-  color: #ffffff;
+  background-color: var(--background);
+  color: var(--foreground);
   border-top: 1px solid var(--border);
 }
 
@@ -74,7 +74,7 @@
   width: 100%;
   padding: 0.875rem 1rem;
   font-size: 1rem;
-  border: 1px solid var(--border);
+  border: 2px solid var(--border);
   border-radius: 8px;
   background: var(--background);
   color: var(--text-primary);
@@ -84,7 +84,7 @@
 .input:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(0, 112, 243, 0.15);
+  box-shadow: 0 0 0 3px rgba(225, 6, 0, 0.15);
 }
 
 .actionGroup {
@@ -96,7 +96,7 @@
   padding: 1rem;
   font-size: 1rem;
   font-weight: 600;
-  color: var(--background);
+  color: white;
   background: var(--primary);
   border: none;
   border-radius: 8px;
@@ -110,7 +110,7 @@
 }
 
 .button:hover {
-  background: #752700;
+  background: #b30000;
 }
 
 .button:active {
@@ -118,7 +118,8 @@
 }
 
 .button:disabled {
-  background: #a0c8ff;
+  background: #cccccc;
+  color: #666666;
   cursor: not-allowed;
 }
 

@@ -2,36 +2,25 @@
   --color-black: #0a0a0a;
   --color-white: #ffffff;
   --color-red: #e10600;
-  --background: var(--color-white);
-  --foreground: var(--color-black);
-  --accent: var(--color-red);
-  transition: background 0.2s, color 0.2s;
-}
-
-.theme-dark {
   --background: var(--color-black);
   --foreground: var(--color-white);
   --accent: var(--color-red);
+  
+  /* Auth form specific variables - Dark theme */
+  --primary: #e10600;
+  --text-primary: var(--color-white);
+  --text-secondary: #a0a0a0;
+  --card-bg: #1a1a1a;
+  --border: #333333;
+  --error: #f87171;
+  --error-bg: #450a0a;
+  --success: #4ade80;
+  --success-bg: #064e3b;
+  
+  transition: background 0.2s, color 0.2s;
 }
 
-.theme-light {
-  --background: var(--color-white);
-  --foreground: var(--color-black);
-  --accent: var(--color-red);
-}
 
-.theme-red {
-  --background: var(--color-red);
-  --foreground: var(--color-white);
-  --accent: var(--color-black);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: var(--color-black);
-    --foreground: var(--color-white);
-  }
-}
 
 html,
 body {
@@ -58,8 +47,6 @@ a {
   text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+html {
+  color-scheme: dark;
 }
