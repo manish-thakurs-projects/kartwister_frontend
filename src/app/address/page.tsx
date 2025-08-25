@@ -50,7 +50,7 @@ export default function AddressPage() {
     setError("");
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("/api/user/addresses", {
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/user/addresses`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setAddresses(res.data);
@@ -94,12 +94,12 @@ export default function AddressPage() {
         location: form.location || { lat: 0, lng: 0 }, // Always send location
       };
       if (editingId) {
-        await axios.put(`/api/user/addresses/${editingId}`, formWithLocation, {
+        await axios.put(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/user/addresses/${editingId}`, formWithLocation, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setSuccessMessage("Address updated successfully");
       } else {
-        await axios.post("/api/user/addresses", formWithLocation, {
+        await axios.post(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/user/addresses`, formWithLocation, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setSuccessMessage("Address added successfully");
@@ -120,7 +120,7 @@ export default function AddressPage() {
     setError("");
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`/api/user/addresses/${id}`, {
+      await axios.delete(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/user/addresses/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       fetchAddresses();
@@ -136,7 +136,7 @@ export default function AddressPage() {
     try {
       const token = localStorage.getItem("token");
       await axios.patch(
-        `/api/user/addresses/${id}/select`,
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/user/addresses/${id}/select`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
